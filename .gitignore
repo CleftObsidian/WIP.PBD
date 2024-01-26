@@ -1,8 +1,7 @@
 # Build results
-[Bb]uild/
 [Ll]ibrary/
-[Ss]ource/Game/x64
-[Ss]ource/DX12Library/x64
+Debug/
+Release/
 
 # Visual Studio cache/options directory
 .vs/
@@ -10,7 +9,7 @@
 # Large resources
 [Ss]ource/Game/Contents/Texture/*
 
-!*.sin
+!*.sln
 !External/DirectXTK12/Library
 !External/Assimp/Library
 !Source/Game/Contents/Texture/brickwall.dds
