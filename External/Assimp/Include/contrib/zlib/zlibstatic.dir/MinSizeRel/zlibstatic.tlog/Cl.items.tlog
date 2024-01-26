@@ -1,0 +1,15 @@
+C:\Users\cdjoo\Desktop\assimp-5.3.1\contrib\zlib\adler32.c;C:\Users\cdjoo\Desktop\assimp-5.3.1\contrib\zlib\zlibstatic.dir\MinSizeRel\adler32.obj
+C:\Users\cdjoo\Desktop\assimp-5.3.1\contrib\zlib\compress.c;C:\Users\cdjoo\Desktop\assimp-5.3.1\contrib\zlib\zlibstatic.dir\MinSizeRel\compress.obj
+C:\Users\cdjoo\Desktop\assimp-5.3.1\contrib\zlib\crc32.c;C:\Users\cdjoo\Desktop\assimp-5.3.1\contrib\zlib\zlibstatic.dir\MinSizeRel\crc32.obj
+C:\Users\cdjoo\Desktop\assimp-5.3.1\contrib\zlib\deflate.c;C:\Users\cdjoo\Desktop\assimp-5.3.1\contrib\zlib\zlibstatic.dir\MinSizeRel\deflate.obj
+C:\Users\cdjoo\Desktop\assimp-5.3.1\contrib\zlib\gzclose.c;C:\Users\cdjoo\Desktop\assimp-5.3.1\contrib\zlib\zlibstatic.dir\MinSizeRel\gzclose.obj
+C:\Users\cdjoo\Desktop\assimp-5.3.1\contrib\zlib\gzlib.c;C:\Users\cdjoo\Desktop\assimp-5.3.1\contrib\zlib\zlibstatic.dir\MinSizeRel\gzlib.obj
+C:\Users\cdjoo\Desktop\assimp-5.3.1\contrib\zlib\gzread.c;C:\Users\cdjoo\Desktop\assimp-5.3.1\contrib\zlib\zlibstatic.dir\MinSizeRel\gzread.obj
+C:\Users\cdjoo\Desktop\assimp-5.3.1\contrib\zlib\gzwrite.c;C:\Users\cdjoo\Desktop\assimp-5.3.1\contrib\zlib\zlibstatic.dir\MinSizeRel\gzwrite.obj
+C:\Users\cdjoo\Desktop\assimp-5.3.1\contrib\zlib\inflate.c;C:\Users\cdjoo\Desktop\assimp-5.3.1\contrib\zlib\zlibstatic.dir\MinSizeRel\inflate.obj
+C:\Users\cdjoo\Desktop\assimp-5.3.1\contrib\zlib\infback.c;C:\Users\cdjoo\Desktop\assimp-5.3.1\contrib\zlib\zlibstatic.dir\MinSizeRel\infback.obj
+C:\Users\cdjoo\Desktop\assimp-5.3.1\contrib\zlib\inftrees.c;C:\Users\cdjoo\Desktop\assimp-5.3.1\contrib\zlib\zlibstatic.dir\MinSizeRel\inftrees.obj
+C:\Users\cdjoo\Desktop\assimp-5.3.1\contrib\zlib\inffast.c;C:\Users\cdjoo\Desktop\assimp-5.3.1\contrib\zlib\zlibstatic.dir\MinSizeRel\inffast.obj
+C:\Users\cdjoo\Desktop\assimp-5.3.1\contrib\zlib\trees.c;C:\Users\cdjoo\Desktop\assimp-5.3.1\contrib\zlib\zlibstatic.dir\MinSizeRel\trees.obj
+C:\Users\cdjoo\Desktop\assimp-5.3.1\contrib\zlib\uncompr.c;C:\Users\cdjoo\Desktop\assimp-5.3.1\contrib\zlib\zlibstatic.dir\MinSizeRel\uncompr.obj
+C:\Users\cdjoo\Desktop\assimp-5.3.1\contrib\zlib\zutil.c;C:\Users\cdjoo\Desktop\assimp-5.3.1\contrib\zlib\zlibstatic.dir\MinSizeRel\zutil.obj
