@@ -75,7 +75,7 @@ namespace DX12Library
 		constexpr size_t SOLVER_ITERATION = 100;
 		for (size_t i = 0; i < SOLVER_ITERATION; ++i)
 		{
-			if (XMVectorGetY(p) < 0.0f)
+			if (XMVectorGetY(p) < 0.0f)		// on floor
 			{
 				// C(p) = p_y
 				XMVECTOR gradC = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
@@ -86,8 +86,8 @@ namespace DX12Library
 		}
 
 		// Update velocity and position
-		velocity = (p - x) / deltaTime;
 		XMVECTOR dx = p - x;
+		velocity = dx / deltaTime;
 		
 		m_world *= XMMatrixTranslationFromVector(dx);
 	}

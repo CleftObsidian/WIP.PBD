@@ -15,10 +15,7 @@ namespace DX12Library
 
     HRESULT GameSample::Initialize(_In_ HINSTANCE hInstance, _In_ INT nCmdShow)
     {
-        if (FAILED(m_mainWindow->Initialize(hInstance, nCmdShow, m_pszGameName)))
-        {
-            return E_FAIL;
-        }
+        ThrowIfFailed(m_mainWindow->Initialize(hInstance, nCmdShow, m_pszGameName));
 
         InitDevice();
 
