@@ -87,8 +87,8 @@ namespace DX12Library
 			x[v] = XMLoadFloat3(&m_vertices[v].position);
 
 			// Estimate next position(p) only considering gravity (Euler Method)
-			m_velocities[v] = XMVectorSetY(m_velocities[v], XMVectorGetY(m_velocities[v]) + deltaTime * -9.81f);	// v <- v + dt * (gravity acceleration)
-			p[v] = x[v] + (deltaTime * m_velocities[v]);															// p <- x + dt * v
+			m_velocities[v] += deltaTime * GRAVITY;			// v <- v + dt * (gravity acceleration)
+			p[v] = x[v] + (deltaTime * m_velocities[v]);	// p <- x + dt * v
 		}
 
 #ifdef _DEBUG

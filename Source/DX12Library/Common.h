@@ -69,3 +69,5 @@ struct ConstantBuffer
 	XMMATRIX Projection;
 	XMFLOAT4 CameraPos;
 };
+
+constexpr XMVECTORF32 GRAVITY = { 0.0f, -9.8f, 0.0f, 0.0f };
