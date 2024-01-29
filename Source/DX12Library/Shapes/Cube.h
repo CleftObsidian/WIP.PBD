@@ -41,6 +41,8 @@ namespace DX12Library
 			1, 5, 6, 1, 6, 2,
 			4, 0, 3, 4, 3, 7
 		};
+
+		float m_restLengths[NUM_INDICES];
 		
 		XMVECTOR m_velocities[NUM_VERTICES];
 	};

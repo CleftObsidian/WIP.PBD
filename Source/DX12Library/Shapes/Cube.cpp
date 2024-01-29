@@ -4,14 +4,23 @@ namespace DX12Library
 {
 	Cube::Cube(_In_ XMVECTOR& position)
 		: Shape()
+		, m_restLengths()
 		, m_velocities{ XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f) }
 	{
+		XMVECTOR pos[NUM_VERTICES];
+
 		// Initialize vertices position
 		for (size_t i = 0; i < NUM_VERTICES; ++i)
 		{
-			XMVECTOR pos = XMLoadFloat3(&m_vertices[i].position);
-			pos += position;
-			XMStoreFloat3(&m_vertices[i].position, pos);
+			pos[i] = XMLoadFloat3(&m_vertices[i].position);
+			pos[i] += position;
+			XMStoreFloat3(&m_vertices[i].position, pos[i]);
+		}
+
+		// Initialize edges length
+		for (size_t i = 1; i < NUM_INDICES; ++i)
+		{
+			m_restLengths[i] = XMVectorGetX(XMVector3Length(pos[ms_indicies[i - 1]] - pos[ms_indicies[i]]));
 		}
 	}
 
@@ -89,17 +98,17 @@ namespace DX12Library
 
 			for (size_t count = 0; count < SOLVER_ITERATION; ++count)
 			{
-				// Solve distance constraints
+				// Solve distance constraints between vertices
 				for (size_t idx = 1; idx < NUM_INDICES; ++idx)
 				{
 					// C(p1, p2) = |p1 - p2| - (rest length)
 					XMVECTOR edge = p[ms_indicies[idx - 1]] - p[ms_indicies[idx]];								// p1 - p2
 					float distance = XMVectorGetX(XMVector3Length(edge));										// |p1 - p2|
 					XMVECTOR norm = XMVector3Normalize(edge);													// (p1 - p2) / |p1 - p2|
-					float rest = XMVectorGetX(XMVector3Length(x[ms_indicies[idx - 1]] - x[ms_indicies[idx]]));	// rest length
+					//float rest = XMVectorGetX(XMVector3Length(x[ms_indicies[idx - 1]] - x[ms_indicies[idx]]));	// rest length
 
-					p[ms_indicies[idx - 1]] -= 0.5f * (distance - rest) * norm;
-					p[ms_indicies[idx]] += 0.5f * (distance - rest) * norm;
+					p[ms_indicies[idx - 1]] -= 0.5f * (distance - m_restLengths[idx]) * norm;
+					p[ms_indicies[idx]] += 0.5f * (distance - m_restLengths[idx]) * norm;
 				}
 
 				// for all vertices
