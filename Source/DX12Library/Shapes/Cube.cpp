@@ -91,6 +91,10 @@ namespace DX12Library
 			p[v] = x[v] + (deltaTime * m_velocities[v]);															// p <- x + dt * v
 		}
 
+#ifdef _DEBUG
+		LARGE_INTEGER sConstraints;
+		QueryPerformanceCounter(&sConstraints);
+#endif
 		// Solve constraints
 		{
 			// Iterate solving constraints
@@ -102,10 +106,9 @@ namespace DX12Library
 				for (size_t idx = 1; idx < NUM_INDICES; ++idx)
 				{
 					// C(p1, p2) = |p1 - p2| - (rest length)
-					XMVECTOR edge = p[ms_indicies[idx - 1]] - p[ms_indicies[idx]];								// p1 - p2
-					float distance = XMVectorGetX(XMVector3Length(edge));										// |p1 - p2|
-					XMVECTOR norm = XMVector3Normalize(edge);													// (p1 - p2) / |p1 - p2|
-					//float rest = XMVectorGetX(XMVector3Length(x[ms_indicies[idx - 1]] - x[ms_indicies[idx]]));	// rest length
+					XMVECTOR edge = p[ms_indicies[idx - 1]] - p[ms_indicies[idx]];		// p1 - p2
+					float distance = XMVectorGetX(XMVector3Length(edge));				// |p1 - p2|
+					XMVECTOR norm = XMVector3Normalize(edge);							// (p1 - p2) / |p1 - p2|
 
 					p[ms_indicies[idx - 1]] -= 0.5f * (distance - m_restLengths[idx]) * norm;
 					p[ms_indicies[idx]] += 0.5f * (distance - m_restLengths[idx]) * norm;
@@ -127,6 +130,14 @@ namespace DX12Library
 				}
 			}
 		}
+#ifdef _DEBUG
+		LARGE_INTEGER eConstraints;
+		QueryPerformanceCounter(&eConstraints);
+		LARGE_INTEGER freq;
+		QueryPerformanceFrequency(&freq);
+		std::wstring str = std::to_wstring(static_cast<float>(eConstraints.QuadPart - sConstraints.QuadPart) * 1000.0f / static_cast<float>(freq.QuadPart));
+		OutputDebugString(str.append(L" ms\n").c_str());
+#endif
 
 		// for all vertices
 		for (size_t v = 0; v < NUM_VERTICES; ++v)
