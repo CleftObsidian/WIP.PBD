@@ -4,8 +4,9 @@ namespace DX12Library
 {
 	Cube::Cube(_In_ XMVECTOR& position)
 		: Shape()
-		, velocities{ XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f) }
+		, m_velocities{ XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f) }
 	{
+		// Initialize vertices position
 		for (size_t i = 0; i < NUM_VERTICES; ++i)
 		{
 			XMVECTOR pos = XMLoadFloat3(&m_vertices[i].position);
@@ -67,33 +68,63 @@ namespace DX12Library
 
 	void Cube::Update(_In_ FLOAT deltaTime)
 	{
+		XMVECTOR x[NUM_VERTICES];
+		XMVECTOR p[NUM_VERTICES];
+
 		// for all vertices
 		for (size_t v = 0; v < NUM_VERTICES; ++v)
 		{
 			// Get position vector(x)
-			XMVECTOR x = XMLoadFloat3(&m_vertices[v].position);
+			x[v] = XMLoadFloat3(&m_vertices[v].position);
 
 			// Estimate next position(p) only considering gravity (Euler Method)
-			velocities[v] = XMVectorSetY(velocities[v], XMVectorGetY(velocities[v]) + deltaTime * -9.81f);	// v <- v + dt * (gravity acceleration)
-			XMVECTOR p = x + (deltaTime * velocities[v]);													// p <- x + dt * v
+			m_velocities[v] = XMVectorSetY(m_velocities[v], XMVectorGetY(m_velocities[v]) + deltaTime * -9.81f);	// v <- v + dt * (gravity acceleration)
+			p[v] = x[v] + (deltaTime * m_velocities[v]);															// p <- x + dt * v
+		}
 
-			// Solve constraint (now just floor plane)
-			constexpr size_t SOLVER_ITERATION = 1;
-			for (size_t i = 0; i < SOLVER_ITERATION; ++i)
+		// Solve constraints
+		{
+			// Iterate solving constraints
+			constexpr size_t SOLVER_ITERATION = 10;
+
+			for (size_t count = 0; count < SOLVER_ITERATION; ++count)
 			{
-				if (XMVectorGetY(p) < 0.0f)		// on floor
+				// Solve distance constraints
+				for (size_t idx = 1; idx < NUM_INDICES; ++idx)
 				{
-					// C(p) = p_y >= 0
-					XMVECTOR gradC = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-					float lambda = -XMVectorGetY(p);	// lambda = -C(p) / |gradC|^2
-					XMVECTOR dp = lambda * gradC;
-					p += dp;
+					// C(p1, p2) = |p1 - p2| - (rest length)
+					XMVECTOR edge = p[ms_indicies[idx - 1]] - p[ms_indicies[idx]];								// p1 - p2
+					float distance = XMVectorGetX(XMVector3Length(edge));										// |p1 - p2|
+					XMVECTOR norm = XMVector3Normalize(edge);													// (p1 - p2) / |p1 - p2|
+					float rest = XMVectorGetX(XMVector3Length(x[ms_indicies[idx - 1]] - x[ms_indicies[idx]]));	// rest length
+
+					p[ms_indicies[idx - 1]] -= 0.5f * (distance - rest) * norm;
+					p[ms_indicies[idx]] += 0.5f * (distance - rest) * norm;
+				}
+
+				// for all vertices
+				for (size_t v = 0; v < NUM_VERTICES; ++v)
+				{
+					// Solve floor(limited y-height) constraint
+					if (XMVectorGetY(p[v]) < 0.0f)
+					{
+						// C(p) = p_y >= 0
+						XMVECTOR gradC = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+						float lambda = -XMVectorGetY(p[v]);	// lambda = -C(p) / |gradC|^2
+						XMVECTOR dp = lambda * gradC;
+
+						p[v] += dp;
+					}
 				}
 			}
+		}
 
+		// for all vertices
+		for (size_t v = 0; v < NUM_VERTICES; ++v)
+		{
 			// Update velocity and position
-			velocities[v] = (p - x) / deltaTime;
-			XMStoreFloat3(&m_vertices[v].position, p);
+			m_velocities[v] = (p[v] - x[v]) / deltaTime;
+			XMStoreFloat3(&m_vertices[v].position, p[v]);
 		}
 
 		// Update vertex buffer

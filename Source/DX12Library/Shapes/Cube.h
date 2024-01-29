@@ -42,6 +42,6 @@ namespace DX12Library
 			4, 0, 3, 4, 3, 7
 		};
 		
-		XMVECTOR velocities[NUM_VERTICES];
+		XMVECTOR m_velocities[NUM_VERTICES];
 	};
 }
