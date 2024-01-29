@@ -105,13 +105,13 @@ namespace DX12Library
 				// Solve distance constraints between vertices
 				for (size_t idx = 1; idx < NUM_INDICES; ++idx)
 				{
-					// C(p1, p2) = |p1 - p2| - (rest length)
+					// C(p1, p2) = |p1 - p2| - (rest length) = 0
 					XMVECTOR edge = p[ms_indicies[idx - 1]] - p[ms_indicies[idx]];		// p1 - p2
 					float distance = XMVectorGetX(XMVector3Length(edge));				// |p1 - p2|
-					XMVECTOR norm = XMVector3Normalize(edge);							// (p1 - p2) / |p1 - p2|
+					XMVECTOR normal = XMVector3Normalize(edge);							// (p1 - p2) / |p1 - p2|
 
-					p[ms_indicies[idx - 1]] -= 0.5f * (distance - m_restLengths[idx]) * norm;
-					p[ms_indicies[idx]] += 0.5f * (distance - m_restLengths[idx]) * norm;
+					p[ms_indicies[idx - 1]] -= 0.5f * (distance - m_restLengths[idx]) * normal;
+					p[ms_indicies[idx]] += 0.5f * (distance - m_restLengths[idx]) * normal;
 				}
 
 				// for all vertices
