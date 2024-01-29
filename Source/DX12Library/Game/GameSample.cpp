@@ -22,7 +22,7 @@ namespace DX12Library
         return S_OK;
     }
 
-    INT GameSample::Run()
+    INT GameSample::Run(void)
     {
         // Initialize time
         LARGE_INTEGER LastTime;
@@ -68,12 +68,12 @@ namespace DX12Library
         return static_cast<INT>(msg.wParam);
     }
 
-    PCWSTR GameSample::GetGameName() const
+    PCWSTR GameSample::GetGameName(void) const
     {
         return m_pszGameName;
     }
 
-    std::unique_ptr<MainWindow>& GameSample::GetWindow()
+    std::unique_ptr<MainWindow>& GameSample::GetWindow(void)
     {
         return m_mainWindow;
     }

@@ -2,7 +2,7 @@
 
 namespace DX12Library
 {
-    MainWindow::MainWindow()
+    MainWindow::MainWindow(void)
         : BaseWindow()
         , m_gameMode(1)
         , m_directions()
@@ -15,7 +15,7 @@ namespace DX12Library
         return initialize(hInstance, nCmdShow, pszWindowName, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX);
     }
 
-    PCWSTR MainWindow::GetWindowClassName() const
+    PCWSTR MainWindow::GetWindowClassName(void) const
     {
         return m_pszWindowName;
     }
@@ -182,22 +182,22 @@ namespace DX12Library
         return S_OK;
     }
 
-    const UINT MainWindow::GetGameMode() const
+    const UINT MainWindow::GetGameMode(void) const
     {
         return m_gameMode;
     }
 
-    const DirectionsInput& MainWindow::GetDirections() const
+    const DirectionsInput& MainWindow::GetDirections(void) const
     {
         return m_directions;
     }
 
-    const MouseRelativeMovement& MainWindow::GetMouseRelativeMovement() const
+    const MouseRelativeMovement& MainWindow::GetMouseRelativeMovement(void) const
     {
         return m_mouseRelativeMovement;
     }
 
-    void MainWindow::ResetMouseMovement()
+    void MainWindow::ResetMouseMovement(void)
     {
         m_mouseRelativeMovement =
         {

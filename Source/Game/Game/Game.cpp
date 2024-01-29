@@ -11,7 +11,7 @@ Game::~Game()
 {
 }
 
-void Game::InitDevice()
+void Game::InitDevice(void)
 {
 	RECT rc;
 	GetClientRect(m_mainWindow->GetWindow(), &rc);
@@ -343,7 +343,7 @@ void Game::InitDevice()
 	}
 }
 
-void Game::CleanupDevice()
+void Game::CleanupDevice(void)
 {
 	// Ensure that the GPU is no longer referencing resources that are about to be
 	// cleaned up by the destructor.
@@ -390,7 +390,7 @@ void Game::Update(_In_ FLOAT deltaTime)
 	XMStoreFloat4(&m_constantBuffer.CameraPos, m_camera.GetEye());
 }
 
-void Game::Render()
+void Game::Render(void)
 {
 	// Record all the commands we need to render the scene into the command list.
 	// Command list allocators can only be reset when the associated 

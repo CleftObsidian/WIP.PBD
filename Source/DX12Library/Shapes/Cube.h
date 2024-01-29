@@ -7,18 +7,19 @@ namespace DX12Library
 	class Cube : public Shape
 	{
 	public:
-		Cube() = delete;
+		Cube(void) = delete;
 		Cube(_In_ XMVECTOR& position);
 		~Cube() = default;
 
 		virtual void Initialize(_In_ ID3D12Device* pDevice);
 		virtual void Update(_In_ FLOAT deltaTime);
 
-		virtual UINT GetNumVertices() const;
-		virtual UINT GetNumIndices() const;
+		virtual UINT GetNumVertices(void) const;
+		virtual UINT GetNumIndices(void) const;
 
 	private:
-		static constexpr VertexPosColor ms_vertices[] =
+		static constexpr UINT NUM_VERTICES = 8;
+		VertexPosColor m_vertices[NUM_VERTICES] =
 		{
 			{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, 0.0f) }, // 0
 			{ XMFLOAT3(-1.0f,  1.0f, -1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f) }, // 1
@@ -29,8 +30,9 @@ namespace DX12Library
 			{ XMFLOAT3(1.0f,  1.0f,  1.0f), XMFLOAT3(1.0f, 1.0f, 1.0f) }, // 6
 			{ XMFLOAT3(1.0f, -1.0f,  1.0f), XMFLOAT3(1.0f, 0.0f, 1.0f) }  // 7
 		};
-		static constexpr UINT NUM_VERTICES = 8;
-		static constexpr WORD ms_indicies[] =
+
+		static constexpr UINT NUM_INDICES = 36;
+		static constexpr WORD ms_indicies[NUM_INDICES] =
 		{
 			0, 1, 2, 0, 2, 3,
 			4, 6, 5, 4, 7, 6,
@@ -39,8 +41,7 @@ namespace DX12Library
 			1, 5, 6, 1, 6, 2,
 			4, 0, 3, 4, 3, 7
 		};
-		static constexpr UINT NUM_INDICES = 36;
-
-		XMVECTOR velocity;
+		
+		XMVECTOR velocities[NUM_VERTICES];
 	};
 }

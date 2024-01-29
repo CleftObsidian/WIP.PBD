@@ -10,7 +10,7 @@ namespace DX12Library
 	public:
 		static LRESULT CALLBACK WindowProc(_In_ HWND hWnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam);
 
-        BaseWindow();
+        BaseWindow(void);
         BaseWindow(const BaseWindow& rhs) = delete;
         BaseWindow(BaseWindow&& rhs) = delete;
         BaseWindow& operator=(const BaseWindow& rhs) = delete;
@@ -18,10 +18,10 @@ namespace DX12Library
         virtual ~BaseWindow() = default;
 
         virtual HRESULT Initialize(_In_ HINSTANCE hInstance, _In_ INT nCmdShow, _In_ PCWSTR pszWindowName) = 0;
-        virtual PCWSTR GetWindowClassName() const = 0;
+        virtual PCWSTR GetWindowClassName(void) const = 0;
         virtual LRESULT HandleMessage(_In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam) = 0;
 
-        HWND GetWindow() const;
+        HWND GetWindow(void) const;
 
     protected:
         HRESULT initialize(
@@ -68,7 +68,7 @@ namespace DX12Library
     }
 
     template <class DerivedType>
-    BaseWindow<DerivedType>::BaseWindow()
+    BaseWindow<DerivedType>::BaseWindow(void)
         : m_hInstance(nullptr)
         , m_hWnd(nullptr)
         , m_pszWindowName(nullptr)
@@ -76,7 +76,7 @@ namespace DX12Library
     }
 
     template <class DerivedType>
-    HWND BaseWindow<DerivedType>::GetWindow() const
+    HWND BaseWindow<DerivedType>::GetWindow(void) const
     {
         return m_hWnd;
     }

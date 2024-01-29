@@ -3,8 +3,9 @@
 namespace DX12Library
 {
 	Plane::Plane(_In_ XMVECTOR& position)
-		: Shape(position)
+		: Shape()
 	{
+		m_world *= XMMatrixTranslationFromVector(position);
 	}
 
 	void Plane::Initialize(_In_ ID3D12Device* pDevice)
@@ -63,12 +64,12 @@ namespace DX12Library
 		UNREFERENCED_PARAMETER(deltaTime);
 	}
 
-	UINT Plane::GetNumVertices() const
+	UINT Plane::GetNumVertices(void) const
 	{
 		return NUM_VERTICES;
 	}
 
-	UINT Plane::GetNumIndices() const
+	UINT Plane::GetNumIndices(void) const
 	{
 		return NUM_INDICES;
 	}

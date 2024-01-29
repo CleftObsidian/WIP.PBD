@@ -10,6 +10,7 @@ namespace DX12Library
         , m_moveUpDown(0.0f)
         , m_travelSpeed(5.0f)
         , m_rotationSpeed(1.0f)
+        , m_padding()
         , m_cameraForward(DEFAULT_FORWARD)
         , m_cameraRight(DEFAULT_RIGHT)
         , m_cameraUp(DEFAULT_UP)
@@ -21,22 +22,22 @@ namespace DX12Library
 	{
 	}
 
-    const XMVECTOR& Camera::GetEye() const
+    const XMVECTOR& Camera::GetEye(void) const
     {
         return m_eye;
     }
 
-    const XMVECTOR& Camera::GetAt() const
+    const XMVECTOR& Camera::GetAt(void) const
     {
         return m_at;
     }
 
-    const XMVECTOR& Camera::GetUp() const
+    const XMVECTOR& Camera::GetUp(void) const
     {
         return m_up;
     }
 
-    const XMMATRIX& Camera::GetView() const
+    const XMMATRIX& Camera::GetView(void) const
     {
         return m_view;
     }

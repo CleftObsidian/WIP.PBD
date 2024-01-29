@@ -10,11 +10,11 @@ public:
 	Game(_In_ PCWSTR pszGameName);
 	~Game();
 
-	virtual void InitDevice();
-	virtual void CleanupDevice();
+	virtual void InitDevice(void);
+	virtual void CleanupDevice(void);
 	virtual void HandleInput(_In_ const DirectionsInput& directions, _In_ const MouseRelativeMovement& mouseRelativeMovement, _In_ FLOAT deltaTime);
 	virtual void Update(_In_ FLOAT deltaTime);
-	virtual void Render();
+	virtual void Render(void);
 
 	HRESULT AddShape(std::wstring shapeName, std::shared_ptr<DX12Library::Shape> shape);
 

@@ -8,8 +8,7 @@ namespace DX12Library
 	class Shape
 	{
 	public:
-		Shape() = delete;
-		Shape(_In_ XMVECTOR& position);
+		Shape(void);
 		virtual ~Shape() = default;
 
 		virtual void Initialize(_In_ ID3D12Device* pDevice) = 0;
@@ -18,10 +17,10 @@ namespace DX12Library
 		D3D12_VERTEX_BUFFER_VIEW& GetVertexBufferView();
 		D3D12_INDEX_BUFFER_VIEW& GetIndexBufferView();
 
-		virtual UINT GetNumVertices() const = 0;
-        virtual UINT GetNumIndices() const = 0;
+		virtual UINT GetNumVertices(void) const = 0;
+        virtual UINT GetNumIndices(void) const = 0;
 
-		const XMMATRIX& GetWorldMatrix() const;
+		const XMMATRIX& GetWorldMatrix(void) const;
 
 	protected:
 		ComPtr<ID3D12Resource> m_vertexBuffer;

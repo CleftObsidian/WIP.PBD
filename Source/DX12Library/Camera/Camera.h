@@ -15,10 +15,10 @@ namespace DX12Library
         Camera& operator=(Camera&& other) = delete;
         virtual ~Camera() = default;
 
-        const XMVECTOR& GetEye() const;
-        const XMVECTOR& GetAt() const;
-        const XMVECTOR& GetUp() const;
-        const XMMATRIX& GetView() const;
+        const XMVECTOR& GetEye(void) const;
+        const XMVECTOR& GetAt(void) const;
+        const XMVECTOR& GetUp(void) const;
+        const XMMATRIX& GetView(void) const;
 
         virtual void HandleInput(_In_ const DirectionsInput& directions, _In_ const MouseRelativeMovement& mouseRelativeMovement, _In_ FLOAT deltaTime);
         virtual void Update(_In_ FLOAT deltaTime);
