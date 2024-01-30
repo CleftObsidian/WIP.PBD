@@ -14,6 +14,8 @@ namespace DX12Library
 		virtual void Initialize(_In_ ID3D12Device* pDevice);
 		virtual void Update(_In_ FLOAT deltaTime);
 
+		virtual VertexPosColor* GetVertices(void);
+		virtual const WORD* GetIndices(void) const;
 		virtual UINT GetNumVertices(void) const;
 		virtual UINT GetNumIndices(void) const;
 

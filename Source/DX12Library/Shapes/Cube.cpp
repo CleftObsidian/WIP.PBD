@@ -157,6 +157,16 @@ namespace DX12Library
 		}
 	}
 
+	VertexPosColor* Cube::GetVertices(void)
+	{
+		return m_vertices;
+	}
+
+	const WORD* Cube::GetIndices(void) const
+	{
+		return ms_indicies;
+	}
+
 	UINT Cube::GetNumVertices(void) const
 	{
 		return NUM_VERTICES;

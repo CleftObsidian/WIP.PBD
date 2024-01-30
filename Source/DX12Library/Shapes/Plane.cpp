@@ -11,7 +11,7 @@ namespace DX12Library
 	void Plane::Initialize(_In_ ID3D12Device* pDevice)
 	{
 		{
-			const UINT vertexBufferSize = sizeof(ms_vertices);
+			const UINT vertexBufferSize = sizeof(m_vertices);
 
 			CD3DX12_HEAP_PROPERTIES heapProperties(D3D12_HEAP_TYPE_UPLOAD);
 			CD3DX12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize);
@@ -26,7 +26,7 @@ namespace DX12Library
 			UINT8* pVertexDataBegin;
 			CD3DX12_RANGE readRange(0, 0);
 			ThrowIfFailed(m_vertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)));
-			memcpy(pVertexDataBegin, ms_vertices, vertexBufferSize);
+			memcpy(pVertexDataBegin, m_vertices, vertexBufferSize);
 			m_vertexBuffer->Unmap(0, nullptr);
 
 			m_vertexBufferView.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
@@ -62,6 +62,16 @@ namespace DX12Library
 	void Plane::Update(_In_ FLOAT deltaTime)
 	{
 		UNREFERENCED_PARAMETER(deltaTime);
+	}
+
+	VertexPosColor* Plane::GetVertices(void)
+	{
+		return m_vertices;
+	}
+
+	const WORD* Plane::GetIndices(void) const
+	{
+		return ms_indicies;
 	}
 
 	UINT Plane::GetNumVertices(void) const

@@ -17,6 +17,8 @@ namespace DX12Library
 		D3D12_VERTEX_BUFFER_VIEW& GetVertexBufferView();
 		D3D12_INDEX_BUFFER_VIEW& GetIndexBufferView();
 
+		virtual VertexPosColor* GetVertices(void) = 0;
+		virtual const WORD* GetIndices(void) const = 0;
 		virtual UINT GetNumVertices(void) const = 0;
         virtual UINT GetNumIndices(void) const = 0;
 

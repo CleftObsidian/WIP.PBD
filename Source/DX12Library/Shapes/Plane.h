@@ -14,12 +14,14 @@ namespace DX12Library
 		virtual void Initialize(_In_ ID3D12Device* pDevice);
 		virtual void Update(_In_ FLOAT deltaTime);
 
+		virtual VertexPosColor* GetVertices(void);
+		virtual const WORD* GetIndices(void) const;
 		virtual UINT GetNumVertices(void) const;
 		virtual UINT GetNumIndices(void) const;
 
 	private:
 		static constexpr UINT NUM_VERTICES = 4;
-		static constexpr VertexPosColor ms_vertices[NUM_VERTICES] =
+		VertexPosColor m_vertices[NUM_VERTICES] =
 		{
 			{ XMFLOAT3(10.0f, 0.0f, 10.0f), XMFLOAT3(0.5f, 0.5f, 0.5f) }, // 0
 			{ XMFLOAT3(-10.0f, 0.0f, -10.0f), XMFLOAT3(0.5f, 0.5f, 0.5f) }, // 1
