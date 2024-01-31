@@ -19,6 +19,15 @@ namespace DX12Library
 		virtual UINT GetNumVertices(void) const;
 		virtual UINT GetNumIndices(void) const;
 
+		virtual void PredictPosition(_In_ FLOAT deltaTime);
+		virtual void SolveSelfDistanceConstraints(void);
+		virtual void SolveShapeCollision(std::shared_ptr<DX12Library::Shape> collideShape);
+		virtual void SolveFloorConstraint(void);
+		virtual void UpdateVertices(_In_ FLOAT deltaTime);
+
+		XMVECTOR* GetPositionPredictions(void);
+		XMVECTOR* GetPositionsBeforeUpdate(void);
+
 	private:
 		static constexpr UINT NUM_VERTICES = 8;
 		VertexPosColor m_vertices[NUM_VERTICES] =
@@ -45,6 +54,9 @@ namespace DX12Library
 		};
 
 		float m_restLengths[NUM_INDICES];
+
+		XMVECTOR m_p[NUM_VERTICES];		// Predictions for positions of vertices
+		XMVECTOR m_x[NUM_VERTICES];		// Positions of vertices before update
 		
 		XMVECTOR m_velocities[NUM_VERTICES];
 	};

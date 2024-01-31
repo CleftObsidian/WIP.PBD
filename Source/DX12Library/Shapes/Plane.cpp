@@ -83,4 +83,29 @@ namespace DX12Library
 	{
 		return NUM_INDICES;
 	}
+
+	void Plane::PredictPosition(_In_ FLOAT deltaTime)
+	{
+		UNREFERENCED_PARAMETER(deltaTime);
+	}
+
+	void Plane::SolveSelfDistanceConstraints(void)
+	{
+
+	}
+
+	void Plane::SolveShapeCollision(std::shared_ptr<DX12Library::Shape> collideShape)
+	{
+		UNREFERENCED_PARAMETER(collideShape);
+	}
+
+	void Plane::SolveFloorConstraint(void)
+	{
+
+	}
+
+	void Plane::UpdateVertices(_In_ FLOAT deltaTime)
+	{
+		UNREFERENCED_PARAMETER(deltaTime);
+	}
 }

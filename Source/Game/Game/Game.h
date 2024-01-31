@@ -18,7 +18,12 @@ public:
 
 	HRESULT AddShape(std::wstring shapeName, std::shared_ptr<DX12Library::Shape> shape);
 
+	void SimulatePhysics(_In_ FLOAT deltaTime);
+
 private:
+	// Number of iteration for solving constraints
+	static constexpr size_t SOLVER_ITERATION = 100;
+
 	// Pipeline objects.
 	ComPtr<IDXGISwapChain3> m_swapChain;
 	ComPtr<ID3D12Device> m_device;

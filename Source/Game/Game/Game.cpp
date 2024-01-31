@@ -377,11 +377,7 @@ void Game::HandleInput(_In_ const DirectionsInput& directions, _In_ const MouseR
 
 void Game::Update(_In_ FLOAT deltaTime)
 {
-	std::unordered_map<std::wstring, std::shared_ptr<DX12Library::Shape>>::iterator shape;
-	for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
-	{
-		shape->second->Update(deltaTime);
-	}
+	SimulatePhysics(deltaTime);
 
 	m_camera.Update(deltaTime);
 
@@ -475,4 +471,42 @@ HRESULT Game::AddShape(std::wstring shapeName, std::shared_ptr<DX12Library::Shap
 	}
 
 	return E_FAIL;
+}
+
+void Game::SimulatePhysics(_In_ FLOAT deltaTime)
+{
+	std::unordered_map<std::wstring, std::shared_ptr<DX12Library::Shape>>::iterator shape;
+	for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
+	{
+		shape->second->PredictPosition(deltaTime);
+	}
+
+	// Solve constraints
+	for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
+	{
+		for (size_t count = 0; count < SOLVER_ITERATION; ++count)
+		{
+			shape->second->SolveSelfDistanceConstraints();
+
+			std::unordered_map<std::wstring, std::shared_ptr<DX12Library::Shape>>::iterator otherShape;
+			for (otherShape = m_shapes.begin(); otherShape != --m_shapes.end(); ++otherShape)
+			{
+				if (shape->first != otherShape->first)
+				{
+					shape->second->SolveShapeCollision(otherShape->second);
+				}
+			}
+
+			shape->second->SolveFloorConstraint();
+		}
+	}
+
+	for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
+	{
+		shape->second->UpdateVertices(deltaTime);
+	}
+	for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
+	{
+		shape->second->Update(deltaTime);
+	}
 }

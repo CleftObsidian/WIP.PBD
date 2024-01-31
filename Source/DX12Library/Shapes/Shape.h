@@ -2,6 +2,7 @@
 
 #include "Common.h"
 #include "DXSampleHelper.h"
+#include <DirectXCollision.h>
 
 namespace DX12Library
 {
@@ -21,6 +22,12 @@ namespace DX12Library
 		virtual const WORD* GetIndices(void) const = 0;
 		virtual UINT GetNumVertices(void) const = 0;
         virtual UINT GetNumIndices(void) const = 0;
+
+		virtual void PredictPosition(_In_ FLOAT deltaTime) = 0;
+		virtual void SolveSelfDistanceConstraints(void) = 0;
+		virtual void SolveShapeCollision(std::shared_ptr<DX12Library::Shape> collideShape) = 0;
+		virtual void SolveFloorConstraint(void) = 0;
+		virtual void UpdateVertices(_In_ FLOAT deltaTime) = 0;
 
 		const XMMATRIX& GetWorldMatrix(void) const;
 
