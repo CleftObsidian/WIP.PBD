@@ -29,10 +29,10 @@ namespace DX12Library
 		static constexpr UINT NUM_VERTICES = 4;
 		VertexPosColor m_vertices[NUM_VERTICES] =
 		{
-			{ XMFLOAT3(100.0f, 0.0f, 100.0f), XMFLOAT3(0.5f, 0.5f, 0.5f) }, // 0
-			{ XMFLOAT3(-100.0f, 0.0f, -100.0f), XMFLOAT3(0.5f, 0.5f, 0.5f) }, // 1
-			{ XMFLOAT3(-100.0f, 0.0f, 100.0f), XMFLOAT3(0.5f, 0.5f, 0.5f) }, // 2
-			{ XMFLOAT3(100.0f, 0.0f, -100.0f), XMFLOAT3(0.5f, 0.5f, 0.5f) }, // 3
+			{ XMFLOAT3(10.0f, 0.0f, 10.0f), XMFLOAT3(0.5f, 0.5f, 0.5f) }, // 0
+			{ XMFLOAT3(-10.0f, 0.0f, -10.0f), XMFLOAT3(0.5f, 0.5f, 0.5f) }, // 1
+			{ XMFLOAT3(-10.0f, 0.0f, 10.0f), XMFLOAT3(0.5f, 0.5f, 0.5f) }, // 2
+			{ XMFLOAT3(10.0f, 0.0f, -10.0f), XMFLOAT3(0.5f, 0.5f, 0.5f) }, // 3
 		};
 
 		static constexpr UINT NUM_INDICES = 12;

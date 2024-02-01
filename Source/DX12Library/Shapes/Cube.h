@@ -25,6 +25,7 @@ namespace DX12Library
 		virtual void SolveFloorConstraint(void);
 		virtual void UpdateVertices(_In_ FLOAT deltaTime);
 
+		//void DampVelocities(void);
 		XMVECTOR* GetPositionPredictions(void);
 		XMVECTOR* GetPositionsBeforeUpdate(void);
 

@@ -120,7 +120,13 @@ namespace DX12Library
 			m_x[v] = XMLoadFloat3(&m_vertices[v].position);
 
 			// Estimate next position(p) only considering gravity (Euler Method)
-			m_velocities[v] += deltaTime * GRAVITY;				// v <- v + dt * (gravity acceleration)
+			m_velocities[v] += deltaTime * GRAVITY;				// v <- v + dt * (gravity acceleration)			
+		}
+
+		//DampVelocities();
+
+		for (size_t v = 0; v < NUM_VERTICES; ++v)
+		{
 			m_p[v] = m_x[v] + (deltaTime * m_velocities[v]);	// p <- x + dt * v
 		}
 	}
@@ -155,13 +161,11 @@ namespace DX12Library
 
 		BoundingOrientedBox thisOBB;
 		BoundingOrientedBox::CreateFromPoints(thisOBB, NUM_VERTICES, thisCubePoints, sizeof(XMFLOAT3));
-		//thisOBB.Extents = { 1.0f, 1.0f, 1.0f };
-		thisOBB.Extents = { 1.0f + FLT_EPSILON, 1.0f + FLT_EPSILON, 1.0f + FLT_EPSILON };
+		thisOBB.Extents = { 1.0f, 1.0f, 1.0f };
 
 		BoundingOrientedBox otherOBB;
-		BoundingOrientedBox::CreateFromPoints(otherOBB, collideCube->GetNumVertices(), collideCubePoints, sizeof(XMFLOAT3));
-		//otherOBB.Extents = { 1.0f, 1.0f, 1.0f };
-		otherOBB.Extents = { 1.0f + FLT_EPSILON, 1.0f + FLT_EPSILON, 1.0f + FLT_EPSILON };
+		BoundingOrientedBox::CreateFromPoints(otherOBB, NUM_VERTICES, collideCubePoints, sizeof(XMFLOAT3));
+		otherOBB.Extents = { 1.0f, 1.0f, 1.0f };
 
 		if (true == thisOBB.Intersects(otherOBB))
 		{
@@ -176,7 +180,7 @@ namespace DX12Library
 			float otherCenterToThisOBBDistance;
 			thisOBB.Intersects(otherCenter, -centerToOtherCenter, otherCenterToThisOBBDistance);
 
-			float intersectDistance = centerDistance - thisCenterToOtherOBBDistance - otherCenterToThisOBBDistance;
+			float intersectDistance = std::_Float_abs(centerDistance - thisCenterToOtherOBBDistance - otherCenterToThisOBBDistance);
 
 #ifdef _DEBUG
 			OutputDebugString(std::to_wstring(thisCenterToOtherOBBDistance).c_str());
@@ -187,37 +191,40 @@ namespace DX12Library
 			OutputDebugString(L"\n\n");
 #endif //_DEBUG
 
-			XMVECTOR dp = -intersectDistance * centerToOtherCenter;
-			if (FLT_EPSILON <= intersectDistance)
+			XMVECTOR dp = -intersectDistance * centerToOtherCenter * 0.05f;
+
+			for (size_t v = 0; v < NUM_VERTICES; ++v)
 			{
-				for (size_t v = 0; v < NUM_VERTICES; ++v)
+				XMVECTOR ray = m_p[v] - thisCenter;
+				float rayLength = XMVectorGetX(XMVector3Length(ray));
+				ray = XMVector3Normalize(ray);
+
+				float distance = -1.0f;
+				bool bRayIntersected = otherOBB.Intersects(thisCenter, ray, distance);
+				ContainmentType eContain = otherOBB.Contains(m_p[v]);
+
+				if ((true == bRayIntersected || CONTAINS == eContain) && 0.0f < distance && distance <= rayLength)
 				{
-					if (CONTAINS == otherOBB.Contains(m_p[v]))
-					{
-						m_p[v] += dp * 0.5f / static_cast<float>(NUM_VERTICES);
-
-						//m_p[v] += dp * 0.5f;
-					}
-					if (CONTAINS == thisOBB.Contains(other_p[v]))
-					{
-						other_p[v] -= dp * 0.5f / static_cast<float>(collideCube->GetNumVertices());
-
-						//other_p[v] -= dp * 0.5f;
-					}
+					m_p[v] += dp;
 				}
-			}
-			else
-			{
-				for (size_t v = 0; v < NUM_VERTICES; ++v)
+				else
 				{
-					if (CONTAINS == otherOBB.Contains(m_p[v]))
-					{
-						m_p[v] = m_x[v];
-					}
-					if (CONTAINS == thisOBB.Contains(other_p[v]))
-					{
-						//other_p[v] = collideCube->GetPositionsBeforeUpdate()[v];
-					}
+					//m_p[v] = m_x[v];
+				}
+
+				ray = other_p[v] - otherCenter;
+				rayLength = XMVectorGetX(XMVector3Length(ray));
+				ray = XMVector3Normalize(ray);
+
+				distance = -1.0f;
+				bRayIntersected = thisOBB.Intersects(otherCenter, ray, distance);
+				if (true == bRayIntersected && 0.0f < distance && distance <= rayLength)
+				{
+					other_p[v] -= dp;
+				}
+				else
+				{
+					//other_p[v] = collideCube->GetPositionsBeforeUpdate()[v];
 				}
 			}
 		}
@@ -238,6 +245,51 @@ namespace DX12Library
 
 				m_p[v] += dp;
 			}
+
+			if (XMVectorGetY(m_p[v]) > 30.0f)
+			{
+				XMVECTOR gradC = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+				float lambda = -(XMVectorGetY(m_p[v]) - 30.0f);
+				XMVECTOR dp = lambda * gradC;
+
+				m_p[v] += dp;
+			}
+
+			if (XMVectorGetX(m_p[v]) > 10.0f)
+			{
+				XMVECTOR gradC = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+				float lambda = -(XMVectorGetX(m_p[v]) - 10.0f);
+				XMVECTOR dp = lambda * gradC;
+
+				m_p[v] += dp;
+			}
+			
+			if (XMVectorGetX(m_p[v]) < -10.0f)
+			{
+				XMVECTOR gradC = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+				float lambda = -(XMVectorGetX(m_p[v]) + 10.0f);
+				XMVECTOR dp = lambda * gradC;
+
+				m_p[v] += dp;
+			}
+
+			if (XMVectorGetZ(m_p[v]) > 10.0f)
+			{
+				XMVECTOR gradC = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+				float lambda = -(XMVectorGetZ(m_p[v]) - 10.0f);
+				XMVECTOR dp = lambda * gradC;
+
+				m_p[v] += dp;
+			}
+			
+			if (XMVectorGetZ(m_p[v]) < -10.0f)
+			{
+				XMVECTOR gradC = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+				float lambda = -(XMVectorGetZ(m_p[v]) + 10.0f);
+				XMVECTOR dp = lambda * gradC;
+
+				m_p[v] += dp;
+			}
 		}
 	}
 
@@ -252,12 +304,65 @@ namespace DX12Library
 		}
 	}
 
+	//void Cube::DampVelocities(void)
+	//{
+	//	XMVECTOR x_cm = XMVectorZero();
+	//	XMVECTOR v_cm = XMVectorZero();
+	//	for (size_t i = 0; i < NUM_VERTICES; ++i)
+	//	{
+	//		x_cm += m_x[i];
+	//		v_cm += m_velocities[i];
+	//	}
+	//	x_cm /= static_cast<float>(NUM_VERTICES);
+	//	v_cm /= static_cast<float>(NUM_VERTICES);
+
+	//	XMVECTOR r[NUM_VERTICES];
+
+	//	XMVECTOR L = XMVectorZero();
+	//	XMMATRIX I;
+	//	I.r[0] = XMVectorZero();
+	//	I.r[1] = XMVectorZero();
+	//	I.r[2] = XMVectorZero();
+	//	I.r[3] = XMVectorZero();
+
+	//	XMMATRIX r_tilde = XMMatrixIdentity();
+	//	for (size_t i = 0; i < NUM_VERTICES; ++i)
+	//	{
+	//		r[i] = m_x[i] - x_cm;
+
+	//		L += XMVector3Cross(r[i], m_velocities[i]);
+
+	//		/*
+	//		XMMATRIX r_tilde(0.0f, -XMVectorGetZ(r[i]), XMVectorGetY(r[i]), 0.0f,
+	//			XMVectorGetZ(r[i]), 0.0f, -XMVectorGetX(r[i]), 0.0f,
+	//			-XMVectorGetY(r[i]), XMVectorGetX(r[i]), 0.0f, 0.0f,
+	//			0.0f, 0.0f, 0.0f, 0.0f);
+	//		*/
+	//		
+	//		r_tilde.r[0] = XMVectorSet(					0.0f,	 -XMVectorGetZ(r[i]),	  XMVectorGetY(r[i]), 0.0f);
+	//		r_tilde.r[1] = XMVectorSet(   XMVectorGetZ(r[i]),					0.0f,	 -XMVectorGetX(r[i]), 0.0f);
+	//		r_tilde.r[2] = XMVectorSet(  -XMVectorGetY(r[i]),	  XMVectorGetX(r[i]),					0.0f, 0.0f);
+	//		r_tilde.r[3] = XMVectorZero();
+	//		
+	//		XMMATRIX r_tilde_transpose = XMMatrixTranspose(r_tilde);
+	//		I += r_tilde * r_tilde_transpose;
+	//	}
+
+	//	XMVECTOR angularVelocity = XMVector3Transform(L, XMMatrixInverse(nullptr, I));
+
+	//	for (size_t i = 0; i < NUM_VERTICES; ++i)
+	//	{
+	//		XMVECTOR dv = v_cm + XMVector3Cross(angularVelocity, r[i]) - m_velocities[i];
+	//		m_velocities[i] += dv;
+	//	}
+	//}
+
 	XMVECTOR* Cube::GetPositionPredictions(void)
 	{
 		return m_p;
 	}
 
-	DirectX::XMVECTOR* Cube::GetPositionsBeforeUpdate(void)
+	XMVECTOR* Cube::GetPositionsBeforeUpdate(void)
 	{
 		return m_x;
 	}
