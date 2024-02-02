@@ -180,7 +180,7 @@ namespace DX12Library
 			float otherCenterToThisOBBDistance;
 			thisOBB.Intersects(otherCenter, -centerToOtherCenter, otherCenterToThisOBBDistance);
 
-			float intersectDistance = centerDistance - thisCenterToOtherOBBDistance - otherCenterToThisOBBDistance;
+			float intersectDistance = std::_Float_abs(centerDistance - thisCenterToOtherOBBDistance - otherCenterToThisOBBDistance);
 
 #ifdef _DEBUG
 			OutputDebugString(std::to_wstring(thisCenterToOtherOBBDistance).c_str());
@@ -191,15 +191,7 @@ namespace DX12Library
 			OutputDebugString(L"\n\n");
 #endif //_DEBUG
 
-			XMVECTOR dp = XMVectorZero();
-			if (0.0f < intersectDistance)
-			{
-				dp = -intersectDistance * centerToOtherCenter * 0.05f;
-			}
-			else
-			{
-				dp = intersectDistance * centerToOtherCenter * 0.05f;
-			}
+			XMVECTOR dp = -intersectDistance * centerToOtherCenter * 0.05f;
 
 			for (size_t v = 0; v < NUM_VERTICES; ++v)
 			{
@@ -237,18 +229,18 @@ namespace DX12Library
 
 				if ((true == bRayIntersected || CONTAINS == eContain) && 0.0f <= distance && distance <= rayLength)
 				{
-					other_p[v] -= dp;
+					//other_p[v] -= dp;
 
-					XMVECTOR tempDp = other_p[v] - collideCube->GetPositionsBeforeUpdate()[v];
-					if (FLT_EPSILON < XMVectorGetX(XMVector3Length(tempDp)))
-					{
-						tempDp *= DYNAMIC_FRICTION;
-					}
-					else
-					{
-						tempDp *= STATIC_FRICTION;
-					}
-					other_p[v] = collideCube->GetPositionsBeforeUpdate()[v] + tempDp;
+					//XMVECTOR tempDp = other_p[v] - collideCube->GetPositionsBeforeUpdate()[v];
+					//if (FLT_EPSILON < XMVectorGetX(XMVector3Length(tempDp)))
+					//{
+					//	tempDp *= DYNAMIC_FRICTION;
+					//}
+					//else
+					//{
+					//	tempDp *= STATIC_FRICTION;
+					//}
+					//other_p[v] = collideCube->GetPositionsBeforeUpdate()[v] + tempDp;
 				}
 			}
 		}

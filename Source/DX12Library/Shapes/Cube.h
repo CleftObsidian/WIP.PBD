@@ -54,6 +54,8 @@ namespace DX12Library
 			4, 0, 3, 4, 3, 7
 		};
 
+		static constexpr float RESTITUTION = 1.0f;
+
 		static constexpr float STATIC_FRICTION = 0.2f;
 		static constexpr float DYNAMIC_FRICTION = 0.5f;
 
