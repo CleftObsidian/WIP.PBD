@@ -142,7 +142,7 @@ void Game::InitDevice(void)
 	ThrowIfFailed(factory->MakeWindowAssociation(m_mainWindow->GetWindow(), DXGI_MWA_NO_ALT_ENTER));
 
 	// Set projection matrix
-	m_constantBuffer.Projection = XMMatrixTranspose(XMMatrixPerspectiveFovLH(XM_PIDIV2, static_cast<FLOAT>(uWidth) / static_cast<FLOAT>(uHeight), 0.01f, 1000.0f));
+	m_constantBuffer.Projection = XMMatrixTranspose(XMMatrixPerspectiveFovLH(XM_PIDIV4, static_cast<FLOAT>(uWidth) / static_cast<FLOAT>(uHeight), 0.01f, 1000.0f));
 
 	ThrowIfFailed(swapChain.As(&m_swapChain));
 	m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
@@ -486,8 +486,6 @@ void Game::SimulatePhysics(_In_ FLOAT deltaTime)
 	{
 		for (size_t count = 0; count < SOLVER_ITERATION; ++count)
 		{
-			shape->second->SolveSelfDistanceConstraints();
-
 			std::unordered_map<std::wstring, std::shared_ptr<DX12Library::Shape>>::iterator otherShape;
 			for (otherShape = m_shapes.begin(); otherShape != --m_shapes.end(); ++otherShape)
 			{
@@ -496,8 +494,8 @@ void Game::SimulatePhysics(_In_ FLOAT deltaTime)
 					shape->second->SolveShapeCollision(otherShape->second);
 				}
 			}
-
 			shape->second->SolveFloorConstraint();
+			shape->second->SolveSelfDistanceConstraints();
 		}
 	}
 

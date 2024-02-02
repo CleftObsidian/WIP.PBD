@@ -123,7 +123,7 @@ namespace DX12Library
 			m_velocities[v] += deltaTime * GRAVITY;				// v <- v + dt * (gravity acceleration)			
 		}
 
-		//DampVelocities();
+		DampVelocities();
 
 		for (size_t v = 0; v < NUM_VERTICES; ++v)
 		{
@@ -180,7 +180,7 @@ namespace DX12Library
 			float otherCenterToThisOBBDistance;
 			thisOBB.Intersects(otherCenter, -centerToOtherCenter, otherCenterToThisOBBDistance);
 
-			float intersectDistance = std::_Float_abs(centerDistance - thisCenterToOtherOBBDistance - otherCenterToThisOBBDistance);
+			float intersectDistance = centerDistance - thisCenterToOtherOBBDistance - otherCenterToThisOBBDistance;
 
 #ifdef _DEBUG
 			OutputDebugString(std::to_wstring(thisCenterToOtherOBBDistance).c_str());
@@ -191,7 +191,15 @@ namespace DX12Library
 			OutputDebugString(L"\n\n");
 #endif //_DEBUG
 
-			XMVECTOR dp = -intersectDistance * centerToOtherCenter * 0.05f;
+			XMVECTOR dp = XMVectorZero();
+			if (0.0f < intersectDistance)
+			{
+				dp = -intersectDistance * centerToOtherCenter * 0.05f;
+			}
+			else
+			{
+				dp = intersectDistance * centerToOtherCenter * 0.05f;
+			}
 
 			for (size_t v = 0; v < NUM_VERTICES; ++v)
 			{
@@ -203,13 +211,20 @@ namespace DX12Library
 				bool bRayIntersected = otherOBB.Intersects(thisCenter, ray, distance);
 				ContainmentType eContain = otherOBB.Contains(m_p[v]);
 
-				if ((true == bRayIntersected || CONTAINS == eContain) && 0.0f < distance && distance <= rayLength)
+				if ((true == bRayIntersected || CONTAINS == eContain) && 0.0f <= distance && distance <= rayLength)
 				{
 					m_p[v] += dp;
-				}
-				else
-				{
-					//m_p[v] = m_x[v];
+
+					XMVECTOR tempDp = m_p[v] - m_x[v];
+					if (FLT_EPSILON < XMVectorGetX(XMVector3Length(tempDp)))
+					{
+						tempDp *= DYNAMIC_FRICTION;
+					}
+					else
+					{
+						tempDp *= STATIC_FRICTION;
+					}
+					m_p[v] = m_x[v] + tempDp;
 				}
 
 				ray = other_p[v] - otherCenter;
@@ -218,13 +233,22 @@ namespace DX12Library
 
 				distance = -1.0f;
 				bRayIntersected = thisOBB.Intersects(otherCenter, ray, distance);
-				if (true == bRayIntersected && 0.0f < distance && distance <= rayLength)
+				eContain = otherOBB.Contains(other_p[v]);
+
+				if ((true == bRayIntersected || CONTAINS == eContain) && 0.0f <= distance && distance <= rayLength)
 				{
 					other_p[v] -= dp;
-				}
-				else
-				{
-					//other_p[v] = collideCube->GetPositionsBeforeUpdate()[v];
+
+					XMVECTOR tempDp = other_p[v] - collideCube->GetPositionsBeforeUpdate()[v];
+					if (FLT_EPSILON < XMVectorGetX(XMVector3Length(tempDp)))
+					{
+						tempDp *= DYNAMIC_FRICTION;
+					}
+					else
+					{
+						tempDp *= STATIC_FRICTION;
+					}
+					other_p[v] = collideCube->GetPositionsBeforeUpdate()[v] + tempDp;
 				}
 			}
 		}
@@ -235,60 +259,32 @@ namespace DX12Library
 		// for all vertices
 		for (size_t v = 0; v < NUM_VERTICES; ++v)
 		{
-			// Solve floor(limited y-height) constraint
-			if (XMVectorGetY(m_p[v]) < 0.0f)
+			if (-10.0f <= XMVectorGetX(m_p[v]) && XMVectorGetX(m_p[v]) <= 10.0f)
 			{
-				// C(p) = p_y >= 0
-				XMVECTOR gradC = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-				float lambda = -XMVectorGetY(m_p[v]);	// lambda = -C(p) / |gradC|^2
-				XMVECTOR dp = lambda * gradC;
+				if (-10.0f <= XMVectorGetZ(m_p[v]) && XMVectorGetZ(m_p[v]) <= 10.0f)
+				{
+					// Solve floor(limited y-height) constraint
+					if (XMVectorGetY(m_p[v]) < 0.0f)
+					{
+						// C(p) = p_y >= 0
+						XMVECTOR gradC = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+						float lambda = -XMVectorGetY(m_p[v]);	// lambda = -C(p) / |gradC|^2
+						XMVECTOR dp = lambda * gradC;
 
-				m_p[v] += dp;
-			}
+						m_p[v] += dp;
 
-			if (XMVectorGetY(m_p[v]) > 30.0f)
-			{
-				XMVECTOR gradC = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-				float lambda = -(XMVectorGetY(m_p[v]) - 30.0f);
-				XMVECTOR dp = lambda * gradC;
-
-				m_p[v] += dp;
-			}
-
-			if (XMVectorGetX(m_p[v]) > 10.0f)
-			{
-				XMVECTOR gradC = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
-				float lambda = -(XMVectorGetX(m_p[v]) - 10.0f);
-				XMVECTOR dp = lambda * gradC;
-
-				m_p[v] += dp;
-			}
-			
-			if (XMVectorGetX(m_p[v]) < -10.0f)
-			{
-				XMVECTOR gradC = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
-				float lambda = -(XMVectorGetX(m_p[v]) + 10.0f);
-				XMVECTOR dp = lambda * gradC;
-
-				m_p[v] += dp;
-			}
-
-			if (XMVectorGetZ(m_p[v]) > 10.0f)
-			{
-				XMVECTOR gradC = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
-				float lambda = -(XMVectorGetZ(m_p[v]) - 10.0f);
-				XMVECTOR dp = lambda * gradC;
-
-				m_p[v] += dp;
-			}
-			
-			if (XMVectorGetZ(m_p[v]) < -10.0f)
-			{
-				XMVECTOR gradC = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
-				float lambda = -(XMVectorGetZ(m_p[v]) + 10.0f);
-				XMVECTOR dp = lambda * gradC;
-
-				m_p[v] += dp;
+						XMVECTOR tempDp = m_p[v] - m_x[v];
+						if (FLT_EPSILON < XMVectorGetX(XMVector3Length(tempDp)))
+						{
+							tempDp *= DYNAMIC_FRICTION;
+						}
+						else
+						{
+							tempDp *= STATIC_FRICTION;
+						}
+						m_p[v] = m_x[v] + tempDp;
+					}
+				}
 			}
 		}
 	}
@@ -304,58 +300,64 @@ namespace DX12Library
 		}
 	}
 
-	//void Cube::DampVelocities(void)
-	//{
-	//	XMVECTOR x_cm = XMVectorZero();
-	//	XMVECTOR v_cm = XMVectorZero();
-	//	for (size_t i = 0; i < NUM_VERTICES; ++i)
-	//	{
-	//		x_cm += m_x[i];
-	//		v_cm += m_velocities[i];
-	//	}
-	//	x_cm /= static_cast<float>(NUM_VERTICES);
-	//	v_cm /= static_cast<float>(NUM_VERTICES);
+	void Cube::DampVelocities(void)
+	{
+		XMVECTOR x_cm = XMVectorZero();
+		XMVECTOR v_cm = XMVectorZero();
+		for (size_t i = 0; i < NUM_VERTICES; ++i)
+		{
+			x_cm += m_x[i];
+			v_cm += m_velocities[i];
+		}
+		x_cm /= static_cast<float>(NUM_VERTICES);
+		v_cm /= static_cast<float>(NUM_VERTICES);
 
-	//	XMVECTOR r[NUM_VERTICES];
+		XMVECTOR r[NUM_VERTICES];
 
-	//	XMVECTOR L = XMVectorZero();
-	//	XMMATRIX I;
-	//	I.r[0] = XMVectorZero();
-	//	I.r[1] = XMVectorZero();
-	//	I.r[2] = XMVectorZero();
-	//	I.r[3] = XMVectorZero();
+		XMVECTOR L = XMVectorZero();
+		XMMATRIX I;
+		I.r[0] = XMVectorZero();
+		I.r[1] = XMVectorZero();
+		I.r[2] = XMVectorZero();
+		I.r[3] = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
 
-	//	XMMATRIX r_tilde = XMMatrixIdentity();
-	//	for (size_t i = 0; i < NUM_VERTICES; ++i)
-	//	{
-	//		r[i] = m_x[i] - x_cm;
+		XMMATRIX r_tilde = XMMatrixIdentity();
+		for (size_t i = 0; i < NUM_VERTICES; ++i)
+		{
+			r[i] = m_x[i] - x_cm;
 
-	//		L += XMVector3Cross(r[i], m_velocities[i]);
+			L += XMVector3Cross(r[i], m_velocities[i]);
 
-	//		/*
-	//		XMMATRIX r_tilde(0.0f, -XMVectorGetZ(r[i]), XMVectorGetY(r[i]), 0.0f,
-	//			XMVectorGetZ(r[i]), 0.0f, -XMVectorGetX(r[i]), 0.0f,
-	//			-XMVectorGetY(r[i]), XMVectorGetX(r[i]), 0.0f, 0.0f,
-	//			0.0f, 0.0f, 0.0f, 0.0f);
-	//		*/
-	//		
-	//		r_tilde.r[0] = XMVectorSet(					0.0f,	 -XMVectorGetZ(r[i]),	  XMVectorGetY(r[i]), 0.0f);
-	//		r_tilde.r[1] = XMVectorSet(   XMVectorGetZ(r[i]),					0.0f,	 -XMVectorGetX(r[i]), 0.0f);
-	//		r_tilde.r[2] = XMVectorSet(  -XMVectorGetY(r[i]),	  XMVectorGetX(r[i]),					0.0f, 0.0f);
-	//		r_tilde.r[3] = XMVectorZero();
-	//		
-	//		XMMATRIX r_tilde_transpose = XMMatrixTranspose(r_tilde);
-	//		I += r_tilde * r_tilde_transpose;
-	//	}
+			/*
+			XMMATRIX r_tilde(0.0f, -XMVectorGetZ(r[i]), XMVectorGetY(r[i]), 0.0f,
+				XMVectorGetZ(r[i]), 0.0f, -XMVectorGetX(r[i]), 0.0f,
+				-XMVectorGetY(r[i]), XMVectorGetX(r[i]), 0.0f, 0.0f,
+				0.0f, 0.0f, 0.0f, 0.0f);
+			*/
+			
+			r_tilde.r[0] = XMVectorSet(					0.0f,	 -XMVectorGetZ(r[i]),	  XMVectorGetY(r[i]), 0.0f);
+			r_tilde.r[1] = XMVectorSet(   XMVectorGetZ(r[i]),					0.0f,	 -XMVectorGetX(r[i]), 0.0f);
+			r_tilde.r[2] = XMVectorSet(  -XMVectorGetY(r[i]),	  XMVectorGetX(r[i]),					0.0f, 0.0f);
+			r_tilde.r[3] = XMVectorZero();//XMVectorSet(					0.0f,					0.0f,					0.0f, 1.0f);
+			
+			XMMATRIX r_tilde_transpose = XMMatrixTranspose(r_tilde);
+			I += r_tilde * r_tilde_transpose;
+		}
 
-	//	XMVECTOR angularVelocity = XMVector3Transform(L, XMMatrixInverse(nullptr, I));
+		XMMATRIX invI = XMMatrixInverse(nullptr, I);
+		if (true == XMMatrixIsInfinite(invI) || true == XMMatrixIsNaN(invI))
+		{
+			OutputDebugString(L"Invalid matrix");
+			return;
+		}
+		XMVECTOR angularVelocity = XMVector3Transform(L, invI);
 
-	//	for (size_t i = 0; i < NUM_VERTICES; ++i)
-	//	{
-	//		XMVECTOR dv = v_cm + XMVector3Cross(angularVelocity, r[i]) - m_velocities[i];
-	//		m_velocities[i] += dv;
-	//	}
-	//}
+		for (size_t i = 0; i < NUM_VERTICES; ++i)
+		{
+			XMVECTOR dv = v_cm + XMVector3Cross(angularVelocity, r[i]) - m_velocities[i];
+			m_velocities[i] += dv;
+		}
+	}
 
 	XMVECTOR* Cube::GetPositionPredictions(void)
 	{

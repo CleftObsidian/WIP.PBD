@@ -25,7 +25,7 @@ namespace DX12Library
 		virtual void SolveFloorConstraint(void);
 		virtual void UpdateVertices(_In_ FLOAT deltaTime);
 
-		//void DampVelocities(void);
+		void DampVelocities(void);
 		XMVECTOR* GetPositionPredictions(void);
 		XMVECTOR* GetPositionsBeforeUpdate(void);
 
@@ -53,6 +53,9 @@ namespace DX12Library
 			1, 5, 6, 1, 6, 2,
 			4, 0, 3, 4, 3, 7
 		};
+
+		static constexpr float STATIC_FRICTION = 0.2f;
+		static constexpr float DYNAMIC_FRICTION = 0.5f;
 
 		float m_restLengths[NUM_INDICES];
 

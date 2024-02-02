@@ -5,7 +5,7 @@ namespace DX12Library
     GameSample::GameSample(_In_ PCWSTR pszGameName)
         : m_pszGameName(pszGameName)
         , m_mainWindow(std::make_unique<MainWindow>())
-        , m_camera(XMVectorSet(0.0f, 5.0f, -10.0f, 0.0f))
+        , m_camera(XMVectorSet(0.0f, 5.0f, -20.0f, 0.0f))
     {
     }
 

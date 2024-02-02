@@ -22,7 +22,7 @@ public:
 
 private:
 	// Number of iteration for solving constraints
-	static constexpr size_t SOLVER_ITERATION = 20;
+	static constexpr size_t SOLVER_ITERATION = 10;
 
 	// Pipeline objects.
 	ComPtr<IDXGISwapChain3> m_swapChain;
