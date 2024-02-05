@@ -210,17 +210,6 @@ namespace DX12Library
 				if ((true == bRayIntersected || CONTAINS == eContain) && 0.0f <= distance && distance <= rayLength)
 				{
 					m_p[v] += dp;
-
-					XMVECTOR tempDp = m_p[v] - m_x[v];
-					if (FLT_EPSILON < XMVectorGetX(XMVector3Length(tempDp)))
-					{
-						tempDp *= DYNAMIC_FRICTION;
-					}
-					else
-					{
-						tempDp *= STATIC_FRICTION;
-					}
-					m_p[v] = m_x[v] + tempDp;
 				}
 
 				ray = other_p[v] - otherCenter;
@@ -234,19 +223,33 @@ namespace DX12Library
 				if ((true == bRayIntersected || CONTAINS == eContain) && 0.0f <= distance && distance <= rayLength)
 				{
 					other_p[v] -= dp;
-
-					XMVECTOR tempDp = other_p[v] - collideCube->GetPositionsBeforeUpdate()[v];
-					if (FLT_EPSILON < XMVectorGetX(XMVector3Length(tempDp)))
-					{
-						tempDp *= DYNAMIC_FRICTION;
-					}
-					else
-					{
-						tempDp *= STATIC_FRICTION;
-					}
-					other_p[v] = collideCube->GetPositionsBeforeUpdate()[v] + tempDp;
 				}
 			}
+
+			// Friction
+			//for (size_t v = 0; v < NUM_VERTICES; ++v)
+			//{
+			//	XMVECTOR displacement = (this->m_p[v] - this->m_x[v]) - (collideCube->m_p[v] - collideCube->m_x[v]);
+			//	displacement -= XMVectorGetX(XMVector3Dot(displacement, -centerToOtherCenter)) * -centerToOtherCenter;
+			//	float disLength = XMVectorGetX(XMVector3Length(displacement));
+			//	if (disLength < FLT_EPSILON)
+			//	{
+			//		return;
+			//	}
+			//	float sFric = sqrtf(this->FRICTION_S * collideCube->FRICTION_S);
+			//	float kFric = sqrtf(this->FRICTION_K * collideCube->FRICTION_K);
+			//	if (disLength < sFric * intersectDistance)
+			//	{
+			//		this->m_p[v] -= 0.5f * displacement;
+			//		collideCube->m_p[v] += 0.5f * displacement;
+			//	}
+			//	else
+			//	{
+			//		XMVECTOR delta = 0.5f * displacement * fminf(kFric * intersectDistance / disLength, 1.0f);
+			//		this->m_p[v] -= delta;
+			//		collideCube->m_p[v] += delta;
+			//	}
+			//}
 		}
 	}
 
@@ -269,16 +272,22 @@ namespace DX12Library
 
 						m_p[v] += dp;
 
-						XMVECTOR tempDp = m_p[v] - m_x[v];
-						if (FLT_EPSILON < XMVectorGetX(XMVector3Length(tempDp)))
+						// Friction
+						XMVECTOR displacement = m_p[v] - m_x[v];
+						displacement -= XMVectorGetX(XMVector3Dot(displacement, gradC)) * gradC;
+						float disLength = XMVectorGetX(XMVector3Length(displacement));
+						if (disLength < FLT_EPSILON)
 						{
-							tempDp *= DYNAMIC_FRICTION;
+							return;
+						}
+						if (disLength < (sqrtf(FRICTION_S) * lambda))
+						{
+							m_p[v] -= displacement;
 						}
 						else
 						{
-							tempDp *= STATIC_FRICTION;
+							m_p[v] -= displacement * fminf(sqrtf(FRICTION_K) * lambda / disLength, 1.0f);
 						}
-						m_p[v] = m_x[v] + tempDp;
 					}
 				}
 			}

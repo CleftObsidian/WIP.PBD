@@ -270,8 +270,8 @@ namespace DX12Library
 			{
 				return;
 			}
-			float sFric = std::sqrtf(this->FRICTION_S * collideSphere->FRICTION_S);
-			float kFric = std::sqrtf(this->FRICTION_K * collideSphere->FRICTION_K);
+			float sFric = sqrtf(this->FRICTION_S * collideSphere->FRICTION_S);
+			float kFric = sqrtf(this->FRICTION_K * collideSphere->FRICTION_K);
 			if (disLength < sFric * -C)
 			{
 				this->m_p -= 0.5f * displacement;
@@ -279,7 +279,7 @@ namespace DX12Library
 			}
 			else
 			{
-				XMVECTOR delta = 0.5f * displacement * std::min(kFric * -C / disLength, 1.0f);
+				XMVECTOR delta = 0.5f * displacement * fminf(kFric * -C / disLength, 1.0f);
 				this->m_p -= delta;
 				collideSphere->m_p += delta;
 			}
@@ -310,13 +310,13 @@ namespace DX12Library
 					{
 						return;
 					}
-					if (disLength < (std::sqrtf(FRICTION_S) * lambda))
+					if (disLength < (sqrtf(FRICTION_S) * lambda))
 					{
 						m_p -= displacement;
 					}
 					else
 					{
-						m_p -= displacement * std::min(std::sqrtf(FRICTION_K) * lambda / disLength, 1.0f);
+						m_p -= displacement * fminf(sqrtf(FRICTION_K) * lambda / disLength, 1.0f);
 					}
 				}
 			}
