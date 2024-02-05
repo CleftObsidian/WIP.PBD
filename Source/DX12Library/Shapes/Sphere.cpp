@@ -310,13 +310,13 @@ namespace DX12Library
 					{
 						return;
 					}
-					if (disLength < (FRICTION_S * lambda))
+					if (disLength < (std::sqrtf(FRICTION_S) * lambda))
 					{
 						m_p -= displacement;
 					}
 					else
 					{
-						m_p -= displacement * std::min(FRICTION_K * lambda / disLength, 1.0f);
+						m_p -= displacement * std::min(std::sqrtf(FRICTION_K) * lambda / disLength, 1.0f);
 					}
 				}
 			}

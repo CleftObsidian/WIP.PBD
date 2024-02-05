@@ -39,8 +39,8 @@ namespace DX12Library
 		std::vector<VertexPosColor> m_aVertices;
 		std::vector<WORD> m_aIndices;
 
-		static constexpr float FRICTION_S = 0.04f;
-		static constexpr float FRICTION_K = 0.04f;
+		static constexpr float FRICTION_S = 0.5f;
+		static constexpr float FRICTION_K = 0.2f;
 
 		XMVECTOR m_x;
 		XMVECTOR m_p = XMVectorZero();
