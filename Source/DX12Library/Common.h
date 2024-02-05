@@ -70,4 +70,18 @@ struct ConstantBuffer
 	XMFLOAT4 CameraPos;
 };
 
+struct BasicMeshEntry
+{
+	BasicMeshEntry()
+		: uNumIndices(0u)
+		, uBaseVertex(0u)
+		, uBaseIndex(0u)
+	{
+	}
+
+	UINT uNumIndices;
+	UINT uBaseVertex;
+	UINT uBaseIndex;
+};
+
 constexpr XMVECTORF32 GRAVITY = { 0.0f, -9.8f, 0.0f, 0.0f };

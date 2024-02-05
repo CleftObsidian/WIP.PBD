@@ -12,11 +12,11 @@ namespace DX12Library
 		Shape(void);
 		virtual ~Shape() = default;
 
-		virtual void Initialize(_In_ ID3D12Device* pDevice) = 0;
+		virtual void Initialize(_In_ ID3D12Device* pDevice, _In_ ID3D12GraphicsCommandList* pCommandList) = 0;
 		virtual void Update(_In_ FLOAT deltaTime) = 0;
 
-		D3D12_VERTEX_BUFFER_VIEW& GetVertexBufferView();
-		D3D12_INDEX_BUFFER_VIEW& GetIndexBufferView();
+		D3D12_VERTEX_BUFFER_VIEW& GetVertexBufferView(void);
+		D3D12_INDEX_BUFFER_VIEW& GetIndexBufferView(void);
 
 		virtual VertexPosColor* GetVertices(void) = 0;
 		virtual const WORD* GetIndices(void) const = 0;

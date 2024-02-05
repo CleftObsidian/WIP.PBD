@@ -34,7 +34,7 @@ void Game::InitDevice(void)
 	// Enable the debug layer (requires the Graphics Tools "optional feature").
 	// NOTE: Enabling the debug layer after device creation will invalidate the active device.
 	{
-		ComPtr<ID3D12Debug> debugController;
+		ComPtr<ID3D12Debug3> debugController;
 		if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
 		{
 			debugController->EnableDebugLayer();
@@ -268,15 +268,11 @@ void Game::InitDevice(void)
 	// Create the command list.
 	ThrowIfFailed(m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.Get(), m_pipelineState.Get(), IID_PPV_ARGS(&m_commandList)));
 
-	// Command lists are created in the recording state, but there is nothing
-	// to record yet. The main loop expects it to be closed, so close it now.
-	ThrowIfFailed(m_commandList->Close());
-
 	std::unordered_map<std::wstring, std::shared_ptr<DX12Library::Shape>>::iterator shape;
 	for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
 	{
-		shape->second->Initialize(m_device.Get());
-	}	
+		shape->second->Initialize(m_device.Get(), m_commandList.Get());
+	}
 
 	// Create a depth buffer.
 	{
@@ -306,6 +302,11 @@ void Game::InitDevice(void)
 
 		m_device->CreateDepthStencilView(m_depthBuffer.Get(), &dsv, m_dsvHeap->GetCPUDescriptorHandleForHeapStart());
 	}
+
+	// Close the command list and execute it to begin the initial GPU setup.
+	ThrowIfFailed(m_commandList->Close());
+	ID3D12CommandList* ppCommandLists[] = { m_commandList.Get() };
+	m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
 	// Create synchronization objects and wait until assets have been uploaded to the GPU.
 	{

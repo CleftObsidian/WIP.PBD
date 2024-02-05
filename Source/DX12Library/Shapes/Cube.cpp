@@ -26,8 +26,10 @@ namespace DX12Library
 		}
 	}
 
-	void Cube::Initialize(_In_ ID3D12Device* pDevice)
+	void Cube::Initialize(_In_ ID3D12Device* pDevice, _In_ ID3D12GraphicsCommandList* pCommandList)
 	{
+		UNREFERENCED_PARAMETER(pCommandList);
+
 		{
 			const UINT vertexBufferSize = sizeof(m_vertices);
 
@@ -46,6 +48,7 @@ namespace DX12Library
 			ThrowIfFailed(m_vertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)));
 			memcpy(pVertexDataBegin, m_vertices, vertexBufferSize);
 			m_vertexBuffer->Unmap(0, nullptr);
+			m_vertexBuffer->SetName(L"Cube Vertex Buffer");
 
 			m_vertexBufferView.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
 			m_vertexBufferView.StrideInBytes = sizeof(VertexPosColor);
@@ -70,6 +73,7 @@ namespace DX12Library
 			ThrowIfFailed(m_indexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pIndexDataBegin)));
 			memcpy(pIndexDataBegin, ms_indicies, indexBufferSize);
 			m_indexBuffer->Unmap(0, nullptr);
+			m_indexBuffer->SetName(L"Cube Index Buffer");
 
 			m_indexBufferView.BufferLocation = m_indexBuffer->GetGPUVirtualAddress();
 			m_indexBufferView.Format = DXGI_FORMAT_R16_UINT;
@@ -120,7 +124,7 @@ namespace DX12Library
 			m_x[v] = XMLoadFloat3(&m_vertices[v].position);
 
 			// Estimate next position(p) only considering gravity (Euler Method)
-			m_velocities[v] += deltaTime * GRAVITY;				// v <- v + dt * (gravity acceleration)			
+			m_velocities[v] += deltaTime * GRAVITY;				// v <- v + dt * (gravity acceleration)
 		}
 
 		DampVelocities();
@@ -229,18 +233,18 @@ namespace DX12Library
 
 				if ((true == bRayIntersected || CONTAINS == eContain) && 0.0f <= distance && distance <= rayLength)
 				{
-					//other_p[v] -= dp;
+					other_p[v] -= dp;
 
-					//XMVECTOR tempDp = other_p[v] - collideCube->GetPositionsBeforeUpdate()[v];
-					//if (FLT_EPSILON < XMVectorGetX(XMVector3Length(tempDp)))
-					//{
-					//	tempDp *= DYNAMIC_FRICTION;
-					//}
-					//else
-					//{
-					//	tempDp *= STATIC_FRICTION;
-					//}
-					//other_p[v] = collideCube->GetPositionsBeforeUpdate()[v] + tempDp;
+					XMVECTOR tempDp = other_p[v] - collideCube->GetPositionsBeforeUpdate()[v];
+					if (FLT_EPSILON < XMVectorGetX(XMVector3Length(tempDp)))
+					{
+						tempDp *= DYNAMIC_FRICTION;
+					}
+					else
+					{
+						tempDp *= STATIC_FRICTION;
+					}
+					other_p[v] = collideCube->GetPositionsBeforeUpdate()[v] + tempDp;
 				}
 			}
 		}

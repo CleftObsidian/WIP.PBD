@@ -15,7 +15,7 @@
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{de43c8f7-8423-47f7-ab94-e04c3bf3ad59}</ProjectGuid>
     <RootNamespace>DX12Library</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -65,10 +65,10 @@
     <PostBuildEvent>
       <Command>mkdir "$(SolutionDir)..\Library\x64\Debug"
 copy "$(TargetDir)" "$(SolutionDir)..\Library\x64\Debug"
-xcopy /y /d "$(SolutionDir)..\External\Assimp\Binary\x64\Debug\assimp-vc143-mtd.dll" "$(OutDir)"</Command>
+xcopy /y /d "$(SolutionDir)..\External\Assimp\Binary\x64\Debug\assimp-vc142-mtd.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
     <Lib>
-      <AdditionalDependencies>d3d12.lib;dxgi.lib;dxguid.lib;d3dcompiler.lib;DirectXTK12.lib;assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d12.lib;dxgi.lib;dxguid.lib;d3dcompiler.lib;DirectXTK12.lib;assimp-vc142-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)..\External\DirectXTK12\Library\x64\Debug;$(SolutionDir)..\External\Assimp\Library\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
     <FxCompile>
@@ -98,10 +98,10 @@ xcopy /y /d "$(SolutionDir)..\External\Assimp\Binary\x64\Debug\assimp-vc143-mtd.
     <PostBuildEvent>
       <Command>mkdir "$(SolutionDir)..\Library\x64\Release"
 copy "$(TargetDir)" "$(SolutionDir)..\Library\x64\Release"
-xcopy /y /d "$(SolutionDir)..\External\Assimp\Binary\x64\Release\assimp-vc143-mt.dll" "$(OutDir)"</Command>
+xcopy /y /d "$(SolutionDir)..\External\Assimp\Binary\x64\Release\assimp-vc142-mt.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
     <Lib>
-      <AdditionalDependencies>d3d12.lib;dxgi.lib;dxguid.lib;d3dcompiler.lib;DirectXTK12.lib;assimp-vc143-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d12.lib;dxgi.lib;dxguid.lib;d3dcompiler.lib;DirectXTK12.lib;assimp-vc142-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)..\External\DirectXTK12\Library\x64\Release;$(SolutionDir)..\External\Assimp\Library\x64\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
     <FxCompile>
@@ -114,6 +114,9 @@ xcopy /y /d "$(SolutionDir)..\External\Assimp\Binary\x64\Release\assimp-vc143-mt
     <ClCompile Include="Shapes\Cube.cpp" />
     <ClCompile Include="Shapes\Plane.cpp" />
     <ClCompile Include="Shapes\Shape.cpp" />
+    <ClCompile Include="Shapes\Sphere.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Window\MainWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -128,6 +131,9 @@ xcopy /y /d "$(SolutionDir)..\External\Assimp\Binary\x64\Release\assimp-vc143-mt
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="Shapes\Shape.h" />
+    <ClInclude Include="Shapes\Sphere.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="Window\BaseWindow.h" />
     <ClInclude Include="Window\MainWindow.h" />
   </ItemGroup>

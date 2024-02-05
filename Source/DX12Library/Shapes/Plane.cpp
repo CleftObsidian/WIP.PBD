@@ -8,8 +8,10 @@ namespace DX12Library
 		m_world *= XMMatrixTranslationFromVector(position);
 	}
 
-	void Plane::Initialize(_In_ ID3D12Device* pDevice)
+	void Plane::Initialize(_In_ ID3D12Device* pDevice, _In_ ID3D12GraphicsCommandList* pCommandList)
 	{
+		UNREFERENCED_PARAMETER(pCommandList);
+
 		{
 			const UINT vertexBufferSize = sizeof(m_vertices);
 
@@ -28,6 +30,7 @@ namespace DX12Library
 			ThrowIfFailed(m_vertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)));
 			memcpy(pVertexDataBegin, m_vertices, vertexBufferSize);
 			m_vertexBuffer->Unmap(0, nullptr);
+			m_vertexBuffer->SetName(L"Plane Vertex Buffer");
 
 			m_vertexBufferView.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
 			m_vertexBufferView.StrideInBytes = sizeof(VertexPosColor);
@@ -52,6 +55,7 @@ namespace DX12Library
 			ThrowIfFailed(m_indexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pIndexDataBegin)));
 			memcpy(pIndexDataBegin, ms_indicies, indexBufferSize);
 			m_indexBuffer->Unmap(0, nullptr);
+			m_indexBuffer->SetName(L"Plane Index Buffer");
 
 			m_indexBufferView.BufferLocation = m_indexBuffer->GetGPUVirtualAddress();
 			m_indexBufferView.Format = DXGI_FORMAT_R16_UINT;

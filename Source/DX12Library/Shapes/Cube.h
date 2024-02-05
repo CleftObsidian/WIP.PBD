@@ -11,7 +11,7 @@ namespace DX12Library
 		Cube(_In_ XMVECTOR& position);
 		~Cube() = default;
 
-		virtual void Initialize(_In_ ID3D12Device* pDevice);
+		virtual void Initialize(_In_ ID3D12Device* pDevice, _In_ ID3D12GraphicsCommandList* pCommandList);
 		virtual void Update(_In_ FLOAT deltaTime);
 
 		virtual VertexPosColor* GetVertices(void);
