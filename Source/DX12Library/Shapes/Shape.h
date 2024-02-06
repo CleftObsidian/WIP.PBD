@@ -10,15 +10,15 @@ namespace DX12Library
 	{
 	public:
 		Shape(void);
-		virtual ~Shape() = default;
+		virtual ~Shape();
 
-		virtual void Initialize(_In_ ID3D12Device* pDevice, _In_ ID3D12GraphicsCommandList* pCommandList) = 0;
+		virtual void Initialize(_In_ ID3D12Device* pDevice) = 0;
 		virtual void Update(_In_ FLOAT deltaTime) = 0;
 
-		D3D12_VERTEX_BUFFER_VIEW& GetVertexBufferView(void);
-		D3D12_INDEX_BUFFER_VIEW& GetIndexBufferView(void);
+		virtual D3D12_VERTEX_BUFFER_VIEW& GetVertexBufferView(void) = 0;
+		virtual D3D12_INDEX_BUFFER_VIEW& GetIndexBufferView(void) = 0;
 
-		virtual VertexPosColor* GetVertices(void) = 0;
+		virtual Vertex* GetVertices(void) = 0;
 		virtual const WORD* GetIndices(void) const = 0;
 		virtual UINT GetNumVertices(void) const = 0;
         virtual UINT GetNumIndices(void) const = 0;
@@ -32,11 +32,6 @@ namespace DX12Library
 		const XMMATRIX& GetWorldMatrix(void) const;
 
 	protected:
-		ComPtr<ID3D12Resource> m_vertexBuffer;
-		D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView;
-		ComPtr<ID3D12Resource> m_indexBuffer;
-		D3D12_INDEX_BUFFER_VIEW m_indexBufferView;
-
 		XMMATRIX m_world = XMMatrixIdentity();
 	};
 }

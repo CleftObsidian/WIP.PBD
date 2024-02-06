@@ -8,7 +8,7 @@ namespace DX12Library
         , m_moveLeftRight(0.0f)
         , m_moveBackForward(0.0f)
         , m_moveUpDown(0.0f)
-        , m_travelSpeed(5.0f)
+        , m_travelSpeed(10.0f)
         , m_rotationSpeed(1.0f)
         , m_padding()
         , m_cameraForward(DEFAULT_FORWARD)

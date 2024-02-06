@@ -16,7 +16,7 @@ public:
 	virtual void Update(_In_ FLOAT deltaTime);
 	virtual void Render(void);
 
-	HRESULT AddShape(std::wstring shapeName, std::shared_ptr<DX12Library::Shape> shape);
+	HRESULT AddShape(const std::wstring shapeName, std::shared_ptr<DX12Library::Shape> shape);
 
 	void SimulatePhysics(_In_ FLOAT deltaTime);
 

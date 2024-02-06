@@ -56,9 +56,10 @@ struct MouseRelativeMovement
     LONG Y;
 };
 
-struct VertexPosColor
+struct Vertex
 {
 	XMFLOAT3 position;
+	XMFLOAT3 normal;
 	XMFLOAT3 color;
 };
 
@@ -67,7 +68,7 @@ struct ConstantBuffer
 	XMMATRIX World = XMMatrixIdentity();
 	XMMATRIX View;
 	XMMATRIX Projection;
-	XMFLOAT4 CameraPos;
+	XMFLOAT3 CameraPos;
 };
 
 struct BasicMeshEntry

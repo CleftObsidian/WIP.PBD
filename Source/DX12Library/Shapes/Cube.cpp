@@ -2,7 +2,12 @@
 
 namespace DX12Library
 {
-	Cube::Cube(_In_ XMVECTOR& position)
+	ComPtr<ID3D12Resource> Cube::m_vertexBuffer;
+	D3D12_VERTEX_BUFFER_VIEW Cube::m_vertexBufferView;
+	ComPtr<ID3D12Resource> Cube::m_indexBuffer;
+	D3D12_INDEX_BUFFER_VIEW Cube::m_indexBufferView;
+
+	Cube::Cube(_In_ const XMVECTOR& position)
 		: Shape()
 		, m_restLengths()
 		, m_p()
@@ -22,14 +27,12 @@ namespace DX12Library
 		// Initialize edges length
 		for (size_t i = 1; i < NUM_INDICES; ++i)
 		{
-			m_restLengths[i] = XMVectorGetX(XMVector3Length(pos[ms_indicies[i - 1]] - pos[ms_indicies[i]]));
+			m_restLengths[i] = XMVectorGetX(XMVector3Length(pos[ms_indices[i - 1]] - pos[ms_indices[i]]));
 		}
 	}
 
-	void Cube::Initialize(_In_ ID3D12Device* pDevice, _In_ ID3D12GraphicsCommandList* pCommandList)
+	void Cube::Initialize(_In_ ID3D12Device* pDevice)
 	{
-		UNREFERENCED_PARAMETER(pCommandList);
-
 		{
 			const UINT vertexBufferSize = sizeof(m_vertices);
 
@@ -51,12 +54,12 @@ namespace DX12Library
 			m_vertexBuffer->SetName(L"Cube Vertex Buffer");
 
 			m_vertexBufferView.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
-			m_vertexBufferView.StrideInBytes = sizeof(VertexPosColor);
+			m_vertexBufferView.StrideInBytes = sizeof(Vertex);
 			m_vertexBufferView.SizeInBytes = vertexBufferSize;
 		}
 
 		{
-			const UINT indexBufferSize = sizeof(ms_indicies);
+			const UINT indexBufferSize = sizeof(ms_indices);
 
 			CD3DX12_HEAP_PROPERTIES heapProperties(D3D12_HEAP_TYPE_UPLOAD);
 			CD3DX12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(indexBufferSize);
@@ -71,7 +74,7 @@ namespace DX12Library
 			UINT8* pIndexDataBegin;
 			CD3DX12_RANGE readRange(0, 0);
 			ThrowIfFailed(m_indexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pIndexDataBegin)));
-			memcpy(pIndexDataBegin, ms_indicies, indexBufferSize);
+			memcpy(pIndexDataBegin, ms_indices, indexBufferSize);
 			m_indexBuffer->Unmap(0, nullptr);
 			m_indexBuffer->SetName(L"Cube Index Buffer");
 
@@ -95,14 +98,24 @@ namespace DX12Library
 		}
 	}
 
-	VertexPosColor* Cube::GetVertices(void)
+	D3D12_VERTEX_BUFFER_VIEW& Cube::GetVertexBufferView(void)
+	{
+		return m_vertexBufferView;
+	}
+
+	D3D12_INDEX_BUFFER_VIEW& Cube::GetIndexBufferView(void)
+	{
+		return m_indexBufferView;
+	}
+
+	Vertex* Cube::GetVertices(void)
 	{
 		return m_vertices;
 	}
 
 	const WORD* Cube::GetIndices(void) const
 	{
-		return ms_indicies;
+		return ms_indices;
 	}
 
 	UINT Cube::GetNumVertices(void) const
@@ -141,12 +154,12 @@ namespace DX12Library
 		for (size_t idx = 1; idx < NUM_INDICES; ++idx)
 		{
 			// C(p1, p2) = |p1 - p2| - (rest length) = 0
-			XMVECTOR edge = m_p[ms_indicies[idx - 1]] - m_p[ms_indicies[idx]];		// p1 - p2
+			XMVECTOR edge = m_p[ms_indices[idx - 1]] - m_p[ms_indices[idx]];		// p1 - p2
 			float distance = XMVectorGetX(XMVector3Length(edge));					// |p1 - p2|
 			XMVECTOR normal = XMVector3Normalize(edge);								// (p1 - p2) / |p1 - p2|
 
-			m_p[ms_indicies[idx - 1]] -= 0.5f * (distance - m_restLengths[idx]) * normal;
-			m_p[ms_indicies[idx]] += 0.5f * (distance - m_restLengths[idx]) * normal;
+			m_p[ms_indices[idx - 1]] -= 0.5f * (distance - m_restLengths[idx]) * normal;
+			m_p[ms_indices[idx]] += 0.5f * (distance - m_restLengths[idx]) * normal;
 		}
 	}
 

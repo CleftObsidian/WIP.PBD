@@ -6,19 +6,27 @@
 
 namespace DX12Library
 {
+	ComPtr<ID3D12Resource> Sphere::m_vertexBuffer;
+	D3D12_VERTEX_BUFFER_VIEW Sphere::m_vertexBufferView;
+	ComPtr<ID3D12Resource> Sphere::m_indexBuffer;
+	D3D12_INDEX_BUFFER_VIEW Sphere::m_indexBufferView;
 	std::unique_ptr<Assimp::Importer> Sphere::sm_pImporter = std::make_unique<Assimp::Importer>();
+	std::vector<Vertex> Sphere::m_aVertices;
+	std::vector<WORD> Sphere::m_aIndices;
+	const aiScene* Sphere::m_pScene = nullptr;
+	std::vector<BasicMeshEntry> Sphere::m_aMeshes;
 
-	Sphere::Sphere(_In_ XMVECTOR& position)
+	Sphere::Sphere(_In_ const XMVECTOR& position)
 		: Shape()
 		, m_x(position)
 		, m_radius(1.0f)
-		, m_pScene(nullptr)
 	{
 		m_world *= XMMatrixTranslationFromVector(position);
 	}
 
-	void Sphere::Initialize(_In_ ID3D12Device* pDevice, _In_ ID3D12GraphicsCommandList* pCommandList)
+	void Sphere::Initialize(_In_ ID3D12Device* pDevice)
 	{
+		if (!m_pScene)
 		{
 			// Read the 3D model file
 			m_pScene = sm_pImporter->ReadFile(
@@ -58,12 +66,13 @@ namespace DX12Library
 					for (UINT j = 0u; j < pMesh->mNumVertices; ++j)
 					{
 						const aiVector3D& position = pMesh->mVertices[j];
-						//const aiVector3D& normal = pMesh->mNormals[j];
+						const aiVector3D& normal = pMesh->mNormals[j];
 						//const aiVector3D& texCoord = pMesh->HasTextureCoords(0u) ? pMesh->mTextureCoords[0][j] : zero3d;
 
-						VertexPosColor vertex =
+						Vertex vertex =
 						{
 							.position = XMFLOAT3(position.x, position.y, position.z),
+							.normal = XMFLOAT3(normal.x, normal.y, normal.z),
 							.color = XMFLOAT3(0.000000000f, 0.501960814f, 0.000000000f)	// green
 						};
 
@@ -99,106 +108,55 @@ namespace DX12Library
 			}
 		}
 
-		const UINT vertexBufferSize = static_cast<UINT>(sizeof(VertexPosColor) * m_aVertices.size());
 		{
-			CD3DX12_HEAP_PROPERTIES heapProperties(D3D12_HEAP_TYPE_DEFAULT);
+			const UINT vertexBufferSize = sizeof(Vertex) * static_cast<UINT>(m_aVertices.size());
+
+			CD3DX12_HEAP_PROPERTIES heapProperties(D3D12_HEAP_TYPE_UPLOAD);
 			CD3DX12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize);
-			// create default heap
-			// default heap is memory on the GPU. Only the GPU has access to this memory
-			// To get data into this heap, we will have to upload the data using
-			// an upload heap
 			ThrowIfFailed(pDevice->CreateCommittedResource(
-				&heapProperties, // a default heap
-				D3D12_HEAP_FLAG_NONE, // no flags
-				&resourceDesc, // resource description for a buffer
-				D3D12_RESOURCE_STATE_COPY_DEST, // we will start this heap in the copy destination state since we will copy data from the upload heap to this heap
-				nullptr, // optimized clear value must be null for this type of resource. used for render targets and depth/stencil buffers
+				&heapProperties,
+				D3D12_HEAP_FLAG_NONE,
+				&resourceDesc,
+				D3D12_RESOURCE_STATE_GENERIC_READ,
+				nullptr,
 				IID_PPV_ARGS(&m_vertexBuffer)));
+
+			void* pVertexDataBegin;
+			CD3DX12_RANGE readRange(0, 0);
+			ThrowIfFailed(m_vertexBuffer->Map(0, &readRange, &pVertexDataBegin));
+			memcpy(pVertexDataBegin, &m_aVertices[0], vertexBufferSize);
+			m_vertexBuffer->Unmap(0, nullptr);
 			m_vertexBuffer->SetName(L"Sphere Vertex Buffer");
+
+			m_vertexBufferView.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
+			m_vertexBufferView.StrideInBytes = sizeof(Vertex);
+			m_vertexBufferView.SizeInBytes = vertexBufferSize;
 		}
 
 		{
+			const UINT indexBufferSize = sizeof(WORD) * static_cast<UINT>(m_aIndices.size());
+
 			CD3DX12_HEAP_PROPERTIES heapProperties(D3D12_HEAP_TYPE_UPLOAD);
-			CD3DX12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize);
-			// create upload heap
-			// upload heaps are used to upload data to the GPU. CPU can write to it, GPU can read from it
-			// We will upload the vertex buffer using this heap to the default heap
-			ID3D12Resource* vBufferUploadHeap;
-			ThrowIfFailed(pDevice->CreateCommittedResource(
-				&heapProperties, // upload heap
-				D3D12_HEAP_FLAG_NONE, // no flags
-				&resourceDesc, // resource description for a buffer
-				D3D12_RESOURCE_STATE_GENERIC_READ, // GPU will read from this buffer and copy its contents to the default heap
-				nullptr,
-				IID_PPV_ARGS(&vBufferUploadHeap)));
-
-			// store vertex buffer in upload heap
-			D3D12_SUBRESOURCE_DATA vertexData = {};
-			vertexData.pData = m_aVertices.data();
-			vertexData.RowPitch = vertexBufferSize;
-			vertexData.SlicePitch = vertexBufferSize;
-
-			// we are now creating a command with the command list to copy the data from
-			// the upload heap to the default heap
-			UpdateSubresources(pCommandList, m_vertexBuffer.Get(), vBufferUploadHeap, 0, 0, 1, &vertexData);
-
-			// transition the vertex buffer data from copy destination state to vertex buffer state
-			CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_vertexBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
-			pCommandList->ResourceBarrier(1, &barrier);
-		}
-
-		// Initialize the vertex buffer view.
-		m_vertexBufferView.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
-		m_vertexBufferView.StrideInBytes = sizeof(VertexPosColor);
-		m_vertexBufferView.SizeInBytes = vertexBufferSize;
-
-		UINT indexBufferSize = static_cast<UINT>(sizeof(WORD) * m_aIndices.size());
-		// Create the index buffer.
-		{
-			CD3DX12_HEAP_PROPERTIES heapProperties(D3D12_HEAP_TYPE_DEFAULT);
 			CD3DX12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(indexBufferSize);
-			// create default heap to hold index buffer
 			ThrowIfFailed(pDevice->CreateCommittedResource(
-				&heapProperties, // a default heap
-				D3D12_HEAP_FLAG_NONE, // no flags
-				&resourceDesc, // resource description for a buffer
-				D3D12_RESOURCE_STATE_COPY_DEST, // start in the copy destination state
-				nullptr, // optimized clear value must be null for this type of resource
+				&heapProperties,
+				D3D12_HEAP_FLAG_NONE,
+				&resourceDesc,
+				D3D12_RESOURCE_STATE_GENERIC_READ,
+				nullptr,
 				IID_PPV_ARGS(&m_indexBuffer)));
+
+			void* pIndexDataBegin;
+			CD3DX12_RANGE readRange(0, 0);
+			ThrowIfFailed(m_indexBuffer->Map(0, &readRange, &pIndexDataBegin));
+			memcpy(pIndexDataBegin, &m_aIndices[0], indexBufferSize);
+			m_indexBuffer->Unmap(0, nullptr);
 			m_indexBuffer->SetName(L"Sphere Index Buffer");
+
+			m_indexBufferView.BufferLocation = m_indexBuffer->GetGPUVirtualAddress();
+			m_indexBufferView.Format = DXGI_FORMAT_R16_UINT;
+			m_indexBufferView.SizeInBytes = indexBufferSize;
 		}
-
-		// create upload heap to upload index buffer
-		{
-			CD3DX12_HEAP_PROPERTIES heapProperties(D3D12_HEAP_TYPE_UPLOAD);
-			CD3DX12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(indexBufferSize);
-			ID3D12Resource* iBufferUploadHeap;
-			ThrowIfFailed(pDevice->CreateCommittedResource(
-				&heapProperties, // upload heap
-				D3D12_HEAP_FLAG_NONE, // no flags
-				&resourceDesc, // resource description for a buffer
-				D3D12_RESOURCE_STATE_GENERIC_READ, // GPU will read from this buffer and copy its contents to the default heap
-				nullptr,
-				IID_PPV_ARGS(&iBufferUploadHeap)));
-
-			// store vertex buffer in upload heap
-			D3D12_SUBRESOURCE_DATA indexData = {};
-			indexData.pData = m_aIndices.data(); // pointer to our index array
-			indexData.RowPitch = indexBufferSize; // size of all our index buffer
-			indexData.SlicePitch = indexBufferSize; // also the size of our index buffer
-
-			// we are now creating a command with the command list to copy the data from
-			// the upload heap to the default heap
-			UpdateSubresources(pCommandList, m_indexBuffer.Get(), iBufferUploadHeap, 0, 0, 1, &indexData);
-
-			// transition the vertex buffer data from copy destination state to vertex buffer state
-			CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_indexBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
-			pCommandList->ResourceBarrier(1, &barrier);
-		}
-
-		m_indexBufferView.BufferLocation = m_indexBuffer->GetGPUVirtualAddress();
-		m_indexBufferView.Format = DXGI_FORMAT_R16_UINT;
-		m_indexBufferView.SizeInBytes = indexBufferSize;
 	}
 
 	void Sphere::Update(_In_ FLOAT deltaTime)
@@ -206,7 +164,17 @@ namespace DX12Library
 		UNREFERENCED_PARAMETER(deltaTime);
 	}
 
-	VertexPosColor* Sphere::GetVertices(void)
+	D3D12_VERTEX_BUFFER_VIEW& Sphere::GetVertexBufferView(void)
+	{
+		return m_vertexBufferView;
+	}
+
+	D3D12_INDEX_BUFFER_VIEW& Sphere::GetIndexBufferView(void)
+	{
+		return m_indexBufferView;
+	}
+
+	Vertex* Sphere::GetVertices(void)
 	{
 		return m_aVertices.data();
 	}

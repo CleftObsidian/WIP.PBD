@@ -16,13 +16,16 @@ namespace DX12Library
 	{
 	public:
 		Sphere(void) = delete;
-		Sphere(_In_ XMVECTOR& position);
-		~Sphere() = default;
+		Sphere(_In_ const XMVECTOR& position);
+		virtual ~Sphere() = default;
 
-		virtual void Initialize(_In_ ID3D12Device * pDevice, _In_ ID3D12GraphicsCommandList* pCommandList);
+		virtual void Initialize(_In_ ID3D12Device* pDevice);
 		virtual void Update(_In_ FLOAT deltaTime);
 
-		virtual VertexPosColor* GetVertices(void);
+		virtual D3D12_VERTEX_BUFFER_VIEW& GetVertexBufferView(void);
+		virtual D3D12_INDEX_BUFFER_VIEW& GetIndexBufferView(void);
+
+		virtual Vertex* GetVertices(void);
 		virtual const WORD* GetIndices(void) const;
 		virtual UINT GetNumVertices(void) const;
 		virtual UINT GetNumIndices(void) const;
@@ -34,12 +37,17 @@ namespace DX12Library
 		virtual void UpdateVertices(_In_ FLOAT deltaTime);
 
 	private:
+		static ComPtr<ID3D12Resource> m_vertexBuffer;
+		static D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView;
+		static ComPtr<ID3D12Resource> m_indexBuffer;
+		static D3D12_INDEX_BUFFER_VIEW m_indexBufferView;
+
 		static std::unique_ptr<Assimp::Importer> sm_pImporter;
 
-		std::vector<VertexPosColor> m_aVertices;
-		std::vector<WORD> m_aIndices;
+		static std::vector<Vertex> m_aVertices;
+		static std::vector<WORD> m_aIndices;
 
-		static constexpr float FRICTION_S = 0.5f;
+		static constexpr float FRICTION_S = 0.25f;
 		static constexpr float FRICTION_K = 0.2f;
 
 		XMVECTOR m_x;
@@ -47,7 +55,7 @@ namespace DX12Library
 		XMVECTOR m_velocity = XMVectorZero();
 		float m_radius;
 
-		const aiScene* m_pScene;
-		std::vector<BasicMeshEntry> m_aMeshes;
+		static const aiScene* m_pScene;
+		static std::vector<BasicMeshEntry> m_aMeshes;
 	};
 }

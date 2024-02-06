@@ -1,4 +1,5 @@
 #include "Game.h"
+#include "Shapes/Sphere.h"
 
 Game::Game(_In_ PCWSTR pszGameName)
 	: GameSample(pszGameName)
@@ -203,15 +204,14 @@ void Game::InitDevice(void)
 		CD3DX12_ROOT_PARAMETER1 rootParameters[1];
 
 		ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
-		rootParameters[0].InitAsConstants(sizeof(ConstantBuffer) / 4, 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
+		rootParameters[0].InitAsConstants(sizeof(ConstantBuffer) / 4, 0, 0, D3D12_SHADER_VISIBILITY_ALL);
 
 		// Allow input layout and deny unnecessary access to certain pipeline stages.
 		D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
 			D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
 			D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
 			D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
-			D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
-			D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS;
+			D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
 
 		CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
 		rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 0, nullptr, rootSignatureFlags);
@@ -241,6 +241,7 @@ void Game::InitDevice(void)
 		D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
 		{
 			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 			{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 		};
 
@@ -268,10 +269,10 @@ void Game::InitDevice(void)
 	// Create the command list.
 	ThrowIfFailed(m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.Get(), m_pipelineState.Get(), IID_PPV_ARGS(&m_commandList)));
 
-	std::unordered_map<std::wstring, std::shared_ptr<DX12Library::Shape>>::iterator shape;
+	std::unordered_map<const std::wstring, std::shared_ptr<DX12Library::Shape>>::iterator shape;
 	for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
 	{
-		shape->second->Initialize(m_device.Get(), m_commandList.Get());
+		shape->second->Initialize(m_device.Get());
 	}
 
 	// Create a depth buffer.
@@ -378,13 +379,90 @@ void Game::HandleInput(_In_ const DirectionsInput& directions, _In_ const MouseR
 
 void Game::Update(_In_ FLOAT deltaTime)
 {
+	// spawn the sphere
+	if (true)
+	{
+		static size_t counting = 0;
+		static size_t shapeNumber = 0;
+		const XMVECTOR position = XMVectorSet(static_cast<float>(rand() % 10) - 5.0f, static_cast<float>(rand() % 10) + 20.0f, static_cast<float>(rand() % 10) - 5.0f, 0.0f);
+		static const std::wstring shapeName = L"Shape";
+		if (1 < counting)
+		{
+			std::shared_ptr<DX12Library::Sphere> sphere = std::make_shared<DX12Library::Sphere>(position);
+			this->AddShape((shapeName + std::to_wstring(shapeNumber)).c_str(), sphere);
+
+			ThrowIfFailed(m_commandAllocator->Reset());
+			ThrowIfFailed(m_commandList->Reset(m_commandAllocator.Get(), m_pipelineState.Get()));
+
+			m_shapes[(shapeName + std::to_wstring(shapeNumber)).c_str()]->Initialize(m_device.Get());
+
+			ThrowIfFailed(m_commandList->Close());
+			ID3D12CommandList* ppCommandLists[] = { m_commandList.Get() };
+			m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+
+			// Signal and increment the fence value.
+			const UINT64 fence = m_fenceValue;
+			ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), fence));
+			m_fenceValue++;
+
+			// Wait until the previous frame is finished.
+			if (m_fence->GetCompletedValue() < fence)
+			{
+				ThrowIfFailed(m_fence->SetEventOnCompletion(fence, m_fenceEvent));
+				WaitForSingleObject(m_fenceEvent, INFINITE);
+			}
+
+			++shapeNumber;
+			counting = 0;
+		}
+		++counting;
+	}
+	
+	// delete the falling shape
+	{
+		const wchar_t* eraseShapeName = nullptr;
+		std::unordered_map<const std::wstring, std::shared_ptr<DX12Library::Shape>>::iterator shape;
+		for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
+		{
+			XMVECTOR s;
+			XMVECTOR r;
+			XMVECTOR t;
+			XMMatrixDecompose(&s, &r, &t, shape->second->GetWorldMatrix());
+			if (XMVectorGetY(t) < -50.0f)
+			{
+				eraseShapeName = shape->first.c_str();
+				break;
+			}
+		}
+		if (nullptr != eraseShapeName)
+		{
+			std::shared_ptr<DX12Library::Shape> eraseShape = m_shapes[eraseShapeName];
+			m_shapes.erase(eraseShapeName);
+			eraseShape->~Shape();
+		}
+	}
+
+	LARGE_INTEGER startSimTime;
+	LARGE_INTEGER endSimTime;
+	LARGE_INTEGER frequency;
+	QueryPerformanceCounter(&startSimTime);
+
 	SimulatePhysics(deltaTime);
+
+	QueryPerformanceCounter(&endSimTime);
+	QueryPerformanceFrequency(&frequency);
+
+	OutputDebugString(L"Number of shapes: ");
+	OutputDebugString(std::to_wstring(m_shapes.size()).c_str());
+	OutputDebugString(L"\nSimulation Step Time: ");
+	OutputDebugString(std::to_wstring(static_cast<float>(endSimTime.QuadPart - startSimTime.QuadPart) * 1000.0f / static_cast<float>(frequency.QuadPart)).c_str());
+	OutputDebugString(L"\n\n");
 
 	m_camera.Update(deltaTime);
 
 	// Update the view matrix.
 	m_constantBuffer.View = XMMatrixTranspose(m_camera.GetView());
-	XMStoreFloat4(&m_constantBuffer.CameraPos, m_camera.GetEye());
+	XMStoreFloat3(&m_constantBuffer.CameraPos, m_camera.GetEye());
 }
 
 void Game::Render(void)
@@ -419,7 +497,7 @@ void Game::Render(void)
 	m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 	m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
-	std::unordered_map<std::wstring, std::shared_ptr<DX12Library::Shape>>::iterator shape;
+	std::unordered_map<const std::wstring, std::shared_ptr<DX12Library::Shape>>::iterator shape;
 	for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
 	{
 		m_commandList->IASetVertexBuffers(0, 1, &shape->second->GetVertexBufferView());
@@ -463,7 +541,7 @@ void Game::Render(void)
 	m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
 }
 
-HRESULT Game::AddShape(std::wstring shapeName, std::shared_ptr<DX12Library::Shape> shape)
+HRESULT Game::AddShape(const std::wstring shapeName, std::shared_ptr<DX12Library::Shape> shape)
 {
 	if (m_shapes.find(shapeName) == m_shapes.end())
 	{
@@ -476,7 +554,7 @@ HRESULT Game::AddShape(std::wstring shapeName, std::shared_ptr<DX12Library::Shap
 
 void Game::SimulatePhysics(_In_ FLOAT deltaTime)
 {
-	std::unordered_map<std::wstring, std::shared_ptr<DX12Library::Shape>>::iterator shape;
+	std::unordered_map<const std::wstring, std::shared_ptr<DX12Library::Shape>>::iterator shape;
 	for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
 	{
 		shape->second->PredictPosition(deltaTime);
@@ -487,7 +565,7 @@ void Game::SimulatePhysics(_In_ FLOAT deltaTime)
 	{
 		for (size_t count = 0; count < SOLVER_ITERATION; ++count)
 		{
-			std::unordered_map<std::wstring, std::shared_ptr<DX12Library::Shape>>::iterator otherShape;
+			std::unordered_map<const std::wstring, std::shared_ptr<DX12Library::Shape>>::iterator otherShape;
 			for (otherShape = m_shapes.begin(); otherShape != --m_shapes.end(); ++otherShape)
 			{
 				if (shape->first != otherShape->first)
