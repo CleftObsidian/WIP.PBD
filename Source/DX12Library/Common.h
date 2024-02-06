@@ -85,4 +85,7 @@ struct BasicMeshEntry
 	UINT uBaseIndex;
 };
 
+// Number of iteration for solving constraints
+static constexpr size_t SOLVER_ITERATION = 2;
+
 constexpr XMVECTORF32 GRAVITY = { 0.0f, -9.8f, 0.0f, 0.0f };

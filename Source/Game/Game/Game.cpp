@@ -438,7 +438,7 @@ void Game::Update(_In_ FLOAT deltaTime)
 		{
 			std::shared_ptr<DX12Library::Shape> eraseShape = m_shapes[eraseShapeName];
 			m_shapes.erase(eraseShapeName);
-			eraseShape->~Shape();
+			eraseShape.reset();
 		}
 	}
 

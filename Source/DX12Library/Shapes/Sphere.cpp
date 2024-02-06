@@ -16,12 +16,14 @@ namespace DX12Library
 	const aiScene* Sphere::m_pScene = nullptr;
 	std::vector<BasicMeshEntry> Sphere::m_aMeshes;
 
+	float Sphere::L_STIFFNESS = 1.0f - powf(1.0f - STIFFNESS, 1.0f / SOLVER_ITERATION);
+
 	Sphere::Sphere(_In_ const XMVECTOR& position)
 		: Shape()
 		, m_x(position)
-		, m_radius(1.0f)
+		, m_radius(0.8f)
 	{
-		m_world *= XMMatrixTranslationFromVector(position);
+		m_world *= XMMatrixScaling(m_radius, m_radius, m_radius) * XMMatrixTranslationFromVector(position);
 	}
 
 	void Sphere::Initialize(_In_ ID3D12Device* pDevice)
@@ -225,7 +227,7 @@ namespace DX12Library
 			// C(p_i, p_j) = |x_ij| - (r_i + r_j) >= 0
 			float C = centerToOtherCenterDistance - sumRadius;
 			float lambda = -C / XMVectorGetX(XMVector3Dot(collisionNormal, collisionNormal));
-			XMVECTOR dp = lambda * collisionNormal * 0.5f;
+			XMVECTOR dp = lambda * collisionNormal * 0.5f * L_STIFFNESS;
 
 			this->m_p += dp;
 			collideSphere->m_p -= dp;
@@ -242,14 +244,14 @@ namespace DX12Library
 			float kFric = sqrtf(this->FRICTION_K * collideSphere->FRICTION_K);
 			if (disLength < sFric * -C)
 			{
-				this->m_p -= 0.5f * displacement;
-				collideSphere->m_p += 0.5f * displacement;
+				this->m_p -= 0.5f * displacement * L_STIFFNESS;
+				collideSphere->m_p += 0.5f * displacement * L_STIFFNESS;
 			}
 			else
 			{
 				XMVECTOR delta = 0.5f * displacement * fminf(kFric * -C / disLength, 1.0f);
-				this->m_p -= delta;
-				collideSphere->m_p += delta;
+				this->m_p -= delta * L_STIFFNESS;
+				collideSphere->m_p += delta * L_STIFFNESS;
 			}
 		}
 	}
@@ -266,7 +268,7 @@ namespace DX12Library
 					// C(p) = p_y - radius >= 0
 					XMVECTOR gradC = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 					float lambda = -(XMVectorGetY(m_p) - m_radius);	// lambda = -C(p) / |gradC|^2
-					XMVECTOR dp = lambda * gradC;
+					XMVECTOR dp = lambda * gradC * L_STIFFNESS;
 
 					m_p += dp;
 					
@@ -280,11 +282,11 @@ namespace DX12Library
 					}
 					if (disLength < (sqrtf(FRICTION_S) * lambda))
 					{
-						m_p -= displacement;
+						m_p -= displacement * L_STIFFNESS;
 					}
 					else
 					{
-						m_p -= displacement * fminf(sqrtf(FRICTION_K) * lambda / disLength, 1.0f);
+						m_p -= displacement * fminf(sqrtf(FRICTION_K) * lambda / disLength, 1.0f) * L_STIFFNESS;
 					}
 				}
 			}

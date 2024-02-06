@@ -49,6 +49,9 @@ namespace DX12Library
 
 		static constexpr float FRICTION_S = 0.25f;
 		static constexpr float FRICTION_K = 0.2f;
+		
+		static constexpr float STIFFNESS = 0.1f;
+		static float L_STIFFNESS;
 
 		XMVECTOR m_x;
 		XMVECTOR m_p = XMVectorZero();
