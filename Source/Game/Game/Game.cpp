@@ -554,6 +554,8 @@ HRESULT Game::AddShape(const std::wstring shapeName, std::shared_ptr<DX12Library
 
 void Game::SimulatePhysics(_In_ FLOAT deltaTime)
 {
+	deltaTime = 1.0f / 60.0f;
+
 	std::unordered_map<const std::wstring, std::shared_ptr<DX12Library::Shape>>::iterator shape;
 	for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
 	{

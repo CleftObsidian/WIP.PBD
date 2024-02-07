@@ -21,7 +21,7 @@ namespace DX12Library
 	Sphere::Sphere(_In_ const XMVECTOR& position)
 		: Shape()
 		, m_x(position)
-		, m_radius(0.8f)
+		, m_radius(0.75f)
 	{
 		m_world *= XMMatrixScaling(m_radius, m_radius, m_radius) * XMMatrixTranslationFromVector(position);
 	}
