@@ -33,22 +33,17 @@ namespace DX12Library
 		XMVECTOR* GetPositionsBeforeUpdate(void);
 
 	private:
-		static ComPtr<ID3D12Resource> m_vertexBuffer;
-		static D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView;
-		static ComPtr<ID3D12Resource> m_indexBuffer;
-		static D3D12_INDEX_BUFFER_VIEW m_indexBufferView;
-
 		static constexpr UINT NUM_VERTICES = 8;
 		Vertex m_vertices[NUM_VERTICES] =
 		{
-			{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.0f, 0.0f, 0.0f) }, // 0
-			{ XMFLOAT3(-1.0f,  1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.0f, 1.0f, 0.0f) }, // 1
-			{ XMFLOAT3(1.0f,  1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 0.0f) }, // 2
-			{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 0.0f, 0.0f) }, // 3
-			{ XMFLOAT3(-1.0f, -1.0f,  1.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.0f, 0.0f, 1.0f) }, // 4
-			{ XMFLOAT3(-1.0f,  1.0f,  1.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.0f, 1.0f, 1.0f) }, // 5
-			{ XMFLOAT3(1.0f,  1.0f,  1.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f) }, // 6
-			{ XMFLOAT3(1.0f, -1.0f,  1.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 0.0f, 1.0f) }  // 7
+			{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, 0.0f) }, // 0
+			{ XMFLOAT3(-1.0f,  1.0f, -1.0f), XMFLOAT3(-1.0f,  1.0f, -1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f) }, // 1
+			{ XMFLOAT3(1.0f,  1.0f, -1.0f), XMFLOAT3(1.0f,  1.0f, -1.0f), XMFLOAT3(1.0f, 1.0f, 0.0f) }, // 2
+			{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f) }, // 3
+			{ XMFLOAT3(-1.0f, -1.0f,  1.0f), XMFLOAT3(-1.0f, -1.0f,  1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f) }, // 4
+			{ XMFLOAT3(-1.0f,  1.0f,  1.0f), XMFLOAT3(-1.0f,  1.0f,  1.0f), XMFLOAT3(0.0f, 1.0f, 1.0f) }, // 5
+			{ XMFLOAT3(1.0f,  1.0f,  1.0f), XMFLOAT3(1.0f,  1.0f,  1.0f), XMFLOAT3(1.0f, 1.0f, 1.0f) }, // 6
+			{ XMFLOAT3(1.0f, -1.0f,  1.0f), XMFLOAT3(1.0f, -1.0f,  1.0f), XMFLOAT3(1.0f, 0.0f, 1.0f) }  // 7
 		};
 
 		static constexpr UINT NUM_INDICES = 36;
@@ -62,14 +57,19 @@ namespace DX12Library
 			4, 0, 3, 4, 3, 7
 		};
 
-		static constexpr float FRICTION_S = 0.1f;
-		static constexpr float FRICTION_K = 0.03f;
+		XMVECTOR m_p[NUM_VERTICES];		// Predictions for positions of vertices
+		XMVECTOR m_x[NUM_VERTICES];		// Positions of vertices before update
+
+		XMVECTOR m_velocities[NUM_VERTICES];
+
+		static constexpr float FRICTION_S = 0.25f;
+		static constexpr float FRICTION_K = 0.2f;
 
 		float m_restLengths[NUM_INDICES];
 
-		XMVECTOR m_p[NUM_VERTICES];		// Predictions for positions of vertices
-		XMVECTOR m_x[NUM_VERTICES];		// Positions of vertices before update
-		
-		XMVECTOR m_velocities[NUM_VERTICES];
+		ComPtr<ID3D12Resource> m_vertexBuffer;
+		D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView;
+		static ComPtr<ID3D12Resource> m_indexBuffer;
+		static D3D12_INDEX_BUFFER_VIEW m_indexBufferView;
 	};
 }

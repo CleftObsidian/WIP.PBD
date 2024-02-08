@@ -2,8 +2,6 @@
 
 namespace DX12Library
 {
-	ComPtr<ID3D12Resource> Cube::m_vertexBuffer;
-	D3D12_VERTEX_BUFFER_VIEW Cube::m_vertexBufferView;
 	ComPtr<ID3D12Resource> Cube::m_indexBuffer;
 	D3D12_INDEX_BUFFER_VIEW Cube::m_indexBufferView;
 
@@ -208,7 +206,7 @@ namespace DX12Library
 			OutputDebugString(L"\n\n");
 #endif //_DEBUG
 
-			XMVECTOR dp = -intersectDistance * centerToOtherCenter * 0.05f;
+			XMVECTOR dp = -intersectDistance * centerToOtherCenter * 0.5f;
 
 			for (size_t v = 0; v < NUM_VERTICES; ++v)
 			{
@@ -225,15 +223,15 @@ namespace DX12Library
 					m_p[v] += dp;
 				}
 
-				ray = other_p[v] - otherCenter;
-				rayLength = XMVectorGetX(XMVector3Length(ray));
-				ray = XMVector3Normalize(ray);
+				XMVECTOR otherRay = other_p[v] - otherCenter;
+				rayLength = XMVectorGetX(XMVector3Length(otherRay));
+				otherRay = XMVector3Normalize(otherRay);
 
-				distance = -1.0f;
-				bRayIntersected = thisOBB.Intersects(otherCenter, ray, distance);
+				float otherDistance = -1.0f;
+				bool bOtherRayIntersected = thisOBB.Intersects(otherCenter, otherRay, otherDistance);
 				eContain = otherOBB.Contains(other_p[v]);
 
-				if ((true == bRayIntersected || CONTAINS == eContain) && 0.0f <= distance && distance <= rayLength)
+				if ((true == bOtherRayIntersected || CONTAINS == eContain) && 0.0f <= otherDistance && otherDistance <= rayLength)
 				{
 					other_p[v] -= dp;
 				}
@@ -271,9 +269,9 @@ namespace DX12Library
 		// for all vertices
 		for (size_t v = 0; v < NUM_VERTICES; ++v)
 		{
-			if (-10.0f <= XMVectorGetX(m_p[v]) && XMVectorGetX(m_p[v]) <= 10.0f)
+			if (-10.0f < XMVectorGetX(m_p[v]) && XMVectorGetX(m_p[v]) < 10.0f)
 			{
-				if (-10.0f <= XMVectorGetZ(m_p[v]) && XMVectorGetZ(m_p[v]) <= 10.0f)
+				if (-10.0f < XMVectorGetZ(m_p[v]) && XMVectorGetZ(m_p[v]) < 10.0f)
 				{
 					// Solve floor(limited y-height) constraint
 					if (XMVectorGetY(m_p[v]) < 0.0f)

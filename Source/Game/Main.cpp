@@ -13,7 +13,7 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	XMVECTOR position = XMVectorZero();
 	if (false)
 	{
-		position = XMVectorSet(0.0f, 20.0f, 0.0f, 0.0f);
+		position = XMVectorSet(0.0f, 5.0f, 0.0f, 0.0f);
 		std::shared_ptr<DX12Library::Cube> cube1 = std::make_shared<DX12Library::Cube>(position);
 		ThrowIfFailed(game->AddShape(L"Cube1", cube1));
 

@@ -1,4 +1,5 @@
 #include "Game.h"
+#include "Shapes/Cube.h"
 #include "Shapes/Sphere.h"
 
 Game::Game(_In_ PCWSTR pszGameName)
@@ -269,11 +270,8 @@ void Game::InitDevice(void)
 	// Create the command list.
 	ThrowIfFailed(m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.Get(), m_pipelineState.Get(), IID_PPV_ARGS(&m_commandList)));
 
-	std::unordered_map<const std::wstring, std::shared_ptr<DX12Library::Shape>>::iterator shape;
-	for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
-	{
-		shape->second->Initialize(m_device.Get());
-	}
+	// Close the command list.
+	ThrowIfFailed(m_commandList->Close());
 
 	// Create a depth buffer.
 	{
@@ -303,11 +301,6 @@ void Game::InitDevice(void)
 
 		m_device->CreateDepthStencilView(m_depthBuffer.Get(), &dsv, m_dsvHeap->GetCPUDescriptorHandleForHeapStart());
 	}
-
-	// Close the command list and execute it to begin the initial GPU setup.
-	ThrowIfFailed(m_commandList->Close());
-	ID3D12CommandList* ppCommandLists[] = { m_commandList.Get() };
-	m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
 	// Create synchronization objects and wait until assets have been uploaded to the GPU.
 	{
@@ -342,6 +335,13 @@ void Game::InitDevice(void)
 		}
 
 		m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
+	}
+
+	// Initialize the shapes.
+	std::unordered_map<const std::wstring, std::shared_ptr<DX12Library::Shape>>::iterator shape;
+	for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
+	{
+		shape->second->Initialize(m_device.Get());
 	}
 }
 
@@ -388,17 +388,10 @@ void Game::Update(_In_ FLOAT deltaTime)
 		static const std::wstring shapeName = L"Shape";
 		if (1 < counting)
 		{
-			std::shared_ptr<DX12Library::Sphere> sphere = std::make_shared<DX12Library::Sphere>(position);
-			this->AddShape((shapeName + std::to_wstring(shapeNumber)).c_str(), sphere);
+			std::shared_ptr<DX12Library::Shape> shape = std::make_shared<DX12Library::Sphere>(position);
+			shape->Initialize(m_device.Get());
 
-			ThrowIfFailed(m_commandAllocator->Reset());
-			ThrowIfFailed(m_commandList->Reset(m_commandAllocator.Get(), m_pipelineState.Get()));
-
-			m_shapes[(shapeName + std::to_wstring(shapeNumber)).c_str()]->Initialize(m_device.Get());
-
-			ThrowIfFailed(m_commandList->Close());
-			ID3D12CommandList* ppCommandLists[] = { m_commandList.Get() };
-			m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+			this->AddShape((shapeName + std::to_wstring(shapeNumber)).c_str(), shape);
 
 			// Signal and increment the fence value.
 			const UINT64 fence = m_fenceValue;
@@ -428,7 +421,10 @@ void Game::Update(_In_ FLOAT deltaTime)
 			XMVECTOR r;
 			XMVECTOR t;
 			XMMatrixDecompose(&s, &r, &t, shape->second->GetWorldMatrix());
-			if (XMVectorGetY(t) < -50.0f)
+
+			float shapeHeight = shape->second->GetVertices()[0].position.y;
+
+			if (XMVectorGetY(t) < -50.0f || shapeHeight < -50.0f)
 			{
 				eraseShapeName = shape->first.c_str();
 				break;
@@ -493,7 +489,7 @@ void Game::Render(void)
 	CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(m_dsvHeap->GetCPUDescriptorHandleForHeapStart());
 	m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
 
-	const float clearColor[] = { 0.529412f, 0.807843f, 0.921569f, 1.0f };
+	const float clearColor[] = { 0.4509803921568627f, 0.8431372549019608f, 1.0f, 1.0f };	// Bluesky
 	m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 	m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
@@ -568,7 +564,7 @@ void Game::SimulatePhysics(_In_ FLOAT deltaTime)
 		for (size_t count = 0; count < SOLVER_ITERATION; ++count)
 		{
 			std::unordered_map<const std::wstring, std::shared_ptr<DX12Library::Shape>>::iterator otherShape;
-			for (otherShape = m_shapes.begin(); otherShape != --m_shapes.end(); ++otherShape)
+			for (otherShape = m_shapes.begin(); otherShape != m_shapes.end(); ++otherShape)
 			{
 				if (shape->first != otherShape->first)
 				{

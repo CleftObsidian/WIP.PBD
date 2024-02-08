@@ -21,7 +21,7 @@ namespace DX12Library
 	Sphere::Sphere(_In_ const XMVECTOR& position)
 		: Shape()
 		, m_x(position)
-		, m_radius(0.75f)
+		, m_radius(0.51f)
 	{
 		m_world *= XMMatrixScaling(m_radius, m_radius, m_radius) * XMMatrixTranslationFromVector(position);
 	}
@@ -108,6 +108,10 @@ namespace DX12Library
 				OutputDebugStringA(sm_pImporter->GetErrorString());
 				OutputDebugString(L"\n");
 			}
+		}
+		else
+		{
+			return;
 		}
 
 		{
@@ -258,9 +262,9 @@ namespace DX12Library
 
 	void Sphere::SolveFloorConstraint(void)
 	{
-		if (-10.0f <= XMVectorGetX(m_p) && XMVectorGetX(m_p) <= 10.0f)
+		if (-10.0f < XMVectorGetX(m_p) && XMVectorGetX(m_p) < 10.0f)
 		{
-			if (-10.0f <= XMVectorGetZ(m_p) && XMVectorGetZ(m_p) <= 10.0f)
+			if (-10.0f < XMVectorGetZ(m_p) && XMVectorGetZ(m_p) < 10.0f)
 			{
 				// Solve floor(limited y-height) constraint
 				if (XMVectorGetY(m_p) - m_radius < 0.0f)

@@ -8,7 +8,7 @@ struct aiMesh;
 namespace Assimp
 {
 	class Importer;
-}
+} 
 
 namespace DX12Library
 {

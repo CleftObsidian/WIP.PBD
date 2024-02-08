@@ -126,6 +126,7 @@ xcopy /y /d "$(SolutionDir)..\External\Assimp\Binary\x64\Release\assimp-vc142-mt
     <ClInclude Include="Game\GameSample.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="Shapes\Carton.h" />
     <ClInclude Include="Shapes\Cube.h" />
     <ClInclude Include="Shapes\Plane.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
