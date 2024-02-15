@@ -128,6 +128,30 @@ namespace DX12Library
 
 	bool Cube::CheckCollision(const std::shared_ptr<DX12Library::Shape> collideShape) const
 	{
+		Cube* collideCube = static_cast<Cube*>(collideShape.get());
+		XMVECTOR* other_p = collideCube->GetPositionPredictions();
+
+		XMFLOAT3 thisCubePoints[NUM_VERTICES];
+		XMFLOAT3 collideCubePoints[NUM_VERTICES];
+		for (size_t i = 0; i < NUM_VERTICES; ++i)
+		{
+			XMStoreFloat3(&thisCubePoints[i], m_p[i]);
+			XMStoreFloat3(&collideCubePoints[i], other_p[i]);
+		}
+
+		BoundingSphere thisSphere;
+		BoundingSphere::CreateFromPoints(thisSphere, NUM_VERTICES, thisCubePoints, sizeof(XMFLOAT3));
+		thisSphere.Radius = 2.0f;
+
+		BoundingSphere otherSphere;
+		BoundingSphere::CreateFromPoints(otherSphere, collideCube->NUM_VERTICES, collideCubePoints, sizeof(XMFLOAT3));
+		otherSphere.Radius = 2.0f;
+
+		if (true == thisSphere.Intersects(otherSphere))
+		{
+			return true;
+		}
+
 		return false;
 	}
 
