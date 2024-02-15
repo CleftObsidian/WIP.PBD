@@ -1,19 +1,19 @@
-#include "Game.h"
+#include "RigidBodyGame.h"
 #include "Shapes/Cube.h"
 #include "Shapes/Sphere.h"
 
-Game::Game(_In_ PCWSTR pszGameName)
-	: GameSample(pszGameName)
+RigidBodyGame::RigidBodyGame(_In_ PCWSTR pszRigidBodyGameName)
+	: GameSample(pszRigidBodyGameName)
 	, m_fenceEvent()
 	, m_fenceValue()
 {
 }
 
-Game::~Game()
+RigidBodyGame::~RigidBodyGame()
 {
 }
 
-void Game::InitDevice(void)
+void RigidBodyGame::InitDevice(void)
 {
 	RECT rc;
 	GetClientRect(m_mainWindow->GetWindow(), &rc);
@@ -264,8 +264,6 @@ void Game::InitDevice(void)
 			.SampleDesc = {.Count = 1 }
 		};
 
-		psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
-
 		ThrowIfFailed(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
 	}
 
@@ -287,7 +285,7 @@ void Game::InitDevice(void)
 		D3D12_CLEAR_VALUE optimizedClearValue =
 		{
 			.Format = DXGI_FORMAT_D32_FLOAT,
-			.DepthStencil = { .Depth = 1.0f,
+			.DepthStencil = {.Depth = 1.0f,
 							  .Stencil = 0 }
 		};
 
@@ -347,7 +345,7 @@ void Game::InitDevice(void)
 	}
 }
 
-void Game::CleanupDevice(void)
+void RigidBodyGame::CleanupDevice(void)
 {
 	// Ensure that the GPU is no longer referencing resources that are about to be
 	// cleaned up by the destructor.
@@ -374,15 +372,15 @@ void Game::CleanupDevice(void)
 	CloseHandle(m_fenceEvent);
 }
 
-void Game::HandleInput(_In_ const DirectionsInput& directions, _In_ const MouseRelativeMovement& mouseRelativeMovement, _In_ FLOAT deltaTime)
+void RigidBodyGame::HandleInput(_In_ const DirectionsInput& directions, _In_ const MouseRelativeMovement& mouseRelativeMovement, _In_ FLOAT deltaTime)
 {
 	m_camera.HandleInput(directions, mouseRelativeMovement, deltaTime);
 }
 
-void Game::Update(_In_ FLOAT deltaTime)
+void RigidBodyGame::Update(_In_ FLOAT deltaTime)
 {
 	// spawn the sphere
-	if (true)
+	if (false)
 	{
 		static size_t counting = 0;
 		static size_t shapeNumber = 0;
@@ -412,7 +410,7 @@ void Game::Update(_In_ FLOAT deltaTime)
 		}
 		++counting;
 	}
-	
+
 	// delete the falling shape
 	{
 		const wchar_t* eraseShapeName = nullptr;
@@ -463,7 +461,7 @@ void Game::Update(_In_ FLOAT deltaTime)
 	XMStoreFloat3(&m_constantBuffer.CameraPos, m_camera.GetEye());
 }
 
-void Game::Render(void)
+void RigidBodyGame::Render(void)
 {
 	// Record all the commands we need to render the scene into the command list.
 	// Command list allocators can only be reset when the associated 
@@ -539,7 +537,7 @@ void Game::Render(void)
 	m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
 }
 
-HRESULT Game::AddShape(const std::wstring shapeName, std::shared_ptr<DX12Library::Shape> shape)
+HRESULT RigidBodyGame::AddShape(const std::wstring shapeName, std::shared_ptr<DX12Library::Shape> shape)
 {
 	if (m_shapes.find(shapeName) == m_shapes.end())
 	{
@@ -550,7 +548,7 @@ HRESULT Game::AddShape(const std::wstring shapeName, std::shared_ptr<DX12Library
 	return E_FAIL;
 }
 
-void Game::CollectCollisionPairs(void)
+void RigidBodyGame::CollectCollisionPairs(void)
 {
 	m_collisionPairs.clear();
 
@@ -568,7 +566,7 @@ void Game::CollectCollisionPairs(void)
 	}
 }
 
-void Game::SimulatePhysics(void)
+void RigidBodyGame::SimulatePhysics(void)
 {
 	CollectCollisionPairs();
 

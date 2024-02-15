@@ -111,8 +111,12 @@ xcopy /y /d "$(SolutionDir)..\External\Assimp\Binary\x64\Release\assimp-vc142-mt
   <ItemGroup>
     <ClCompile Include="Camera\Camera.cpp" />
     <ClCompile Include="Game\GameSample.cpp" />
+    <ClCompile Include="Physics\Clipping.cpp" />
+    <ClCompile Include="Physics\Collider.cpp" />
+    <ClCompile Include="Physics\Support.cpp" />
     <ClCompile Include="Shapes\Cube.cpp" />
     <ClCompile Include="Shapes\Plane.cpp" />
+    <ClCompile Include="Shapes\RigidBodySphere.cpp" />
     <ClCompile Include="Shapes\Shape.cpp" />
     <ClCompile Include="Shapes\Sphere.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
@@ -125,6 +129,10 @@ xcopy /y /d "$(SolutionDir)..\External\Assimp\Binary\x64\Release\assimp-vc142-mt
     <ClInclude Include="DXSampleHelper.h" />
     <ClInclude Include="Game\GameSample.h" />
     <ClInclude Include="Common.h" />
+    <ClInclude Include="Physics\Clipping.h" />
+    <ClInclude Include="Physics\Collider.h" />
+    <ClInclude Include="Physics\PBD.h" />
+    <ClInclude Include="Physics\Support.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="Shapes\Carton.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -134,6 +142,8 @@ xcopy /y /d "$(SolutionDir)..\External\Assimp\Binary\x64\Release\assimp-vc142-mt
     <ClInclude Include="Shapes\Plane.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="Shapes\RigidBodyShape.h" />
+    <ClInclude Include="Shapes\RigidBodySphere.h" />
     <ClInclude Include="Shapes\Shape.h" />
     <ClInclude Include="Shapes\Sphere.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>

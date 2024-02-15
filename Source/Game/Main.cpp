@@ -51,7 +51,7 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	position = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
 	std::shared_ptr<DX12Library::Plane> plane = std::make_shared<DX12Library::Plane>(position);
 	ThrowIfFailed(game->AddShape(L"Plane", plane));
-
+	
 	ThrowIfFailed(game->Initialize(hInstance, nCmdShow));
 
     return game->Run();
