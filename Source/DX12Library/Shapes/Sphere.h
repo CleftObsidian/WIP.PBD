@@ -30,6 +30,8 @@ namespace DX12Library
 		virtual UINT GetNumVertices(void) const;
 		virtual UINT GetNumIndices(void) const;
 
+		virtual bool CheckCollision(const std::shared_ptr<DX12Library::Shape> collideShape) const;
+
 		virtual void PredictPosition(_In_ FLOAT deltaTime);
 		virtual void SolveSelfDistanceConstraints(void);
 		virtual void SolveShapeCollision(std::shared_ptr<DX12Library::Shape> collideShape);
@@ -47,16 +49,16 @@ namespace DX12Library
 		static std::vector<Vertex> m_aVertices;
 		static std::vector<WORD> m_aIndices;
 
-		static constexpr float FRICTION_S = 0.25f;
-		static constexpr float FRICTION_K = 0.2f;
+		static constexpr float FRICTION_S = 0.74f;
+		static constexpr float FRICTION_K = 0.57f;
 		
-		static constexpr float STIFFNESS = 0.1f;
-		static float L_STIFFNESS;
+		static constexpr float STIFFNESS = 2.0f * 100000000000.0f;
+		static constexpr float COMPLIANCE = 1.0f / STIFFNESS;
 
 		XMVECTOR m_x;
 		XMVECTOR m_p = XMVectorZero();
 		XMVECTOR m_velocity = XMVectorZero();
-		float m_radius;
+		static float m_radius;
 
 		static const aiScene* m_pScene;
 		static std::vector<BasicMeshEntry> m_aMeshes;

@@ -126,6 +126,11 @@ namespace DX12Library
 		return NUM_INDICES;
 	}
 
+	bool Cube::CheckCollision(const std::shared_ptr<DX12Library::Shape> collideShape) const
+	{
+		return false;
+	}
+
 	void Cube::PredictPosition(_In_ FLOAT deltaTime)
 	{
 		// for all vertices

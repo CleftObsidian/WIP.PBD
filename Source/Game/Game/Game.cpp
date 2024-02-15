@@ -443,7 +443,7 @@ void Game::Update(_In_ FLOAT deltaTime)
 	LARGE_INTEGER frequency;
 	QueryPerformanceCounter(&startSimTime);
 
-	SimulatePhysics(deltaTime);
+	SimulatePhysics();
 
 	QueryPerformanceCounter(&endSimTime);
 	QueryPerformanceFrequency(&frequency);
@@ -548,40 +548,60 @@ HRESULT Game::AddShape(const std::wstring shapeName, std::shared_ptr<DX12Library
 	return E_FAIL;
 }
 
-void Game::SimulatePhysics(_In_ FLOAT deltaTime)
+void Game::CollectCollisionPairs(void)
 {
-	deltaTime = 1.0f / 60.0f;
+	m_collisionPairs.clear();
 
 	std::unordered_map<const std::wstring, std::shared_ptr<DX12Library::Shape>>::iterator shape;
 	for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
 	{
-		shape->second->PredictPosition(deltaTime);
-	}
-
-	// Solve constraints
-	for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
-	{
-		for (size_t count = 0; count < SOLVER_ITERATION; ++count)
+		std::unordered_map<const std::wstring, std::shared_ptr<DX12Library::Shape>>::iterator otherShape = shape;
+		for (++otherShape; otherShape != m_shapes.end(); ++otherShape)
 		{
-			std::unordered_map<const std::wstring, std::shared_ptr<DX12Library::Shape>>::iterator otherShape;
-			for (otherShape = m_shapes.begin(); otherShape != m_shapes.end(); ++otherShape)
+			if (true == shape->second->CheckCollision(otherShape->second))
 			{
-				if (shape->first != otherShape->first)
-				{
-					shape->second->SolveShapeCollision(otherShape->second);
-				}
+				m_collisionPairs.insert(std::make_pair(shape->first + otherShape->first, std::make_pair(shape->first, otherShape->first)));
 			}
-			shape->second->SolveFloorConstraint();
-			shape->second->SolveSelfDistanceConstraints();
 		}
 	}
+}
 
-	for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
+void Game::SimulatePhysics(void)
+{
+	CollectCollisionPairs();
+
+	constexpr float deltaTime = TIMESTEP / static_cast<float>(SUBSTEPS);
+	for (size_t i = 0; i < SUBSTEPS; ++i)
 	{
-		shape->second->UpdateVertices(deltaTime);
-	}
-	for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
-	{
-		shape->second->Update(deltaTime);
+		std::unordered_map<const std::wstring, std::shared_ptr<DX12Library::Shape>>::iterator shape;
+		for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
+		{
+			shape->second->PredictPosition(deltaTime);
+		}
+
+		// Solve constraints
+		for (size_t count = 0; count < SOLVER_ITERATION; ++count)
+		{
+			std::unordered_map<std::wstring, std::pair<std::wstring, std::wstring>>::iterator collision;
+			for (collision = m_collisionPairs.begin(); collision != m_collisionPairs.end(); ++collision)
+			{
+				m_shapes[collision->second.first]->SolveShapeCollision(m_shapes[collision->second.second]);
+			}
+
+			for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
+			{
+				shape->second->SolveFloorConstraint();
+				shape->second->SolveSelfDistanceConstraints();
+			}
+		}
+
+		for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
+		{
+			shape->second->UpdateVertices(deltaTime);
+		}
+		for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
+		{
+			shape->second->Update(deltaTime);
+		}
 	}
 }

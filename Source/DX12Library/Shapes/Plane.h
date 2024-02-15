@@ -22,6 +22,8 @@ namespace DX12Library
 		virtual UINT GetNumVertices(void) const;
 		virtual UINT GetNumIndices(void) const;
 
+		virtual bool CheckCollision(const std::shared_ptr<DX12Library::Shape> collideShape) const;
+
 		virtual void PredictPosition(_In_ FLOAT deltaTime);
 		virtual void SolveSelfDistanceConstraints(void);
 		virtual void SolveShapeCollision(std::shared_ptr<DX12Library::Shape> collideShape);

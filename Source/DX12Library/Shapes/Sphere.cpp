@@ -13,15 +13,13 @@ namespace DX12Library
 	std::unique_ptr<Assimp::Importer> Sphere::sm_pImporter = std::make_unique<Assimp::Importer>();
 	std::vector<Vertex> Sphere::m_aVertices;
 	std::vector<WORD> Sphere::m_aIndices;
+	float Sphere::m_radius = 0.51f;
 	const aiScene* Sphere::m_pScene = nullptr;
 	std::vector<BasicMeshEntry> Sphere::m_aMeshes;
-
-	float Sphere::L_STIFFNESS = 1.0f - powf(1.0f - STIFFNESS, 1.0f / SOLVER_ITERATION);
 
 	Sphere::Sphere(_In_ const XMVECTOR& position)
 		: Shape()
 		, m_x(position)
-		, m_radius(0.51f)
 	{
 		m_world *= XMMatrixScaling(m_radius, m_radius, m_radius) * XMMatrixTranslationFromVector(position);
 	}
@@ -75,6 +73,7 @@ namespace DX12Library
 						{
 							.position = XMFLOAT3(position.x, position.y, position.z),
 							.normal = XMFLOAT3(normal.x, normal.y, normal.z),
+							//.color = XMFLOAT3(position.x, position.y, position.z)
 							.color = XMFLOAT3(0.000000000f, 0.501960814f, 0.000000000f)	// green
 						};
 
@@ -200,6 +199,21 @@ namespace DX12Library
 		return static_cast<UINT>(m_aIndices.size());
 	}
 
+	bool Sphere::CheckCollision(const std::shared_ptr<DX12Library::Shape> collideShape) const
+	{
+		Sphere* collideSphere = static_cast<Sphere*>(collideShape.get());
+
+		XMVECTOR centerToOtherCenter = collideSphere->m_p - this->m_p;
+		float centerToOtherCenterDistanceSq = XMVectorGetX(XMVector3LengthSq(centerToOtherCenter));
+		float sumRadius = collideSphere->m_radius + this->m_radius;
+		if (centerToOtherCenterDistanceSq < sumRadius * sumRadius)
+		{
+			return true;
+		}
+
+		return false;
+	}
+
 	void Sphere::PredictPosition(_In_ FLOAT deltaTime)
 	{
 		// Get position vector(x)
@@ -227,11 +241,12 @@ namespace DX12Library
 		if (centerToOtherCenterDistance < sumRadius)
 		{
 			XMVECTOR collisionNormal = -XMVector3Normalize(centerToOtherCenter);
-
-			// C(p_i, p_j) = |x_ij| - (r_i + r_j) >= 0
+			
+			// C(p_i, p_j) = |p_i - p_j| - (r_i + r_j) >= 0
 			float C = centerToOtherCenterDistance - sumRadius;
-			float lambda = -C / XMVectorGetX(XMVector3Dot(collisionNormal, collisionNormal));
-			XMVECTOR dp = lambda * collisionNormal * 0.5f * L_STIFFNESS;
+			float dLambda = -C / (XMVectorGetX(XMVector3Dot(collisionNormal, collisionNormal)) + COMPLIANCE);
+			dLambda *= 0.5f;
+			XMVECTOR dp = dLambda * collisionNormal;
 
 			this->m_p += dp;
 			collideSphere->m_p -= dp;
@@ -244,18 +259,18 @@ namespace DX12Library
 			{
 				return;
 			}
-			float sFric = sqrtf(this->FRICTION_S * collideSphere->FRICTION_S);
-			float kFric = sqrtf(this->FRICTION_K * collideSphere->FRICTION_K);
+			float sFric = (this->FRICTION_S + collideSphere->FRICTION_S) * 0.5f;
+			float kFric = (this->FRICTION_K + collideSphere->FRICTION_K) * 0.5f;
 			if (disLength < sFric * -C)
 			{
-				this->m_p -= 0.5f * displacement * L_STIFFNESS;
-				collideSphere->m_p += 0.5f * displacement * L_STIFFNESS;
+				this->m_p -= 0.5f * displacement;
+				collideSphere->m_p += 0.5f * displacement;
 			}
 			else
 			{
 				XMVECTOR delta = 0.5f * displacement * fminf(kFric * -C / disLength, 1.0f);
-				this->m_p -= delta * L_STIFFNESS;
-				collideSphere->m_p += delta * L_STIFFNESS;
+				this->m_p -= delta;
+				collideSphere->m_p += delta;
 			}
 		}
 	}
@@ -270,12 +285,14 @@ namespace DX12Library
 				if (XMVectorGetY(m_p) - m_radius < 0.0f)
 				{
 					// C(p) = p_y - radius >= 0
+					float C = XMVectorGetY(m_p) - m_radius;
 					XMVECTOR gradC = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-					float lambda = -(XMVectorGetY(m_p) - m_radius);	// lambda = -C(p) / |gradC|^2
-					XMVECTOR dp = lambda * gradC * L_STIFFNESS;
+					// lambda = -C(p) / |gradC|^2
+					float dLambda = -C / (XMVectorGetX(XMVector3Dot(gradC, gradC)) + COMPLIANCE);
+					XMVECTOR dp = dLambda * gradC;
 
 					m_p += dp;
-					
+
 					// Friction
 					XMVECTOR displacement = m_p - m_x;
 					displacement -= XMVectorGetX(XMVector3Dot(displacement, gradC)) * gradC;
@@ -284,13 +301,13 @@ namespace DX12Library
 					{
 						return;
 					}
-					if (disLength < (sqrtf(FRICTION_S) * lambda))
+					if (disLength < (FRICTION_S * dLambda))
 					{
-						m_p -= displacement * L_STIFFNESS;
+						m_p -= displacement;
 					}
 					else
 					{
-						m_p -= displacement * fminf(sqrtf(FRICTION_K) * lambda / disLength, 1.0f) * L_STIFFNESS;
+						m_p -= displacement * fminf(FRICTION_K * dLambda / disLength, 1.0f);
 					}
 				}
 			}
@@ -301,6 +318,7 @@ namespace DX12Library
 	{
 		// Update velocity and position
 		m_velocity = (m_p - m_x) / deltaTime;
+
 		m_world *= XMMatrixTranslationFromVector(m_p - m_x);
 	}
 }

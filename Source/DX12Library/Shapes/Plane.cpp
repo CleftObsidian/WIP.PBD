@@ -101,6 +101,11 @@ namespace DX12Library
 		return NUM_INDICES;
 	}
 
+	bool Plane::CheckCollision(const std::shared_ptr<DX12Library::Shape> collideShape) const
+	{
+		return false;
+	}
+
 	void Plane::PredictPosition(_In_ FLOAT deltaTime)
 	{
 		UNREFERENCED_PARAMETER(deltaTime);

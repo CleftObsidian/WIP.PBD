@@ -18,7 +18,8 @@ public:
 
 	HRESULT AddShape(const std::wstring shapeName, std::shared_ptr<DX12Library::Shape> shape);
 
-	void SimulatePhysics(_In_ FLOAT deltaTime);
+	void CollectCollisionPairs(void);
+	void SimulatePhysics(void);
 
 private:
 	// Pipeline objects.
@@ -38,6 +39,7 @@ private:
 	ComPtr<ID3D12Resource> m_depthBuffer;
 	ConstantBuffer m_constantBuffer;
 	std::unordered_map<std::wstring, std::shared_ptr<DX12Library::Shape>> m_shapes;
+	std::unordered_map<std::wstring, std::pair<std::wstring, std::wstring>> m_collisionPairs;
 
 	// Synchronization objects.
 	UINT m_frameIndex = 0;
