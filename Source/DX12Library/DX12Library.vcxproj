@@ -116,6 +116,7 @@ xcopy /y /d "$(SolutionDir)..\External\Assimp\Binary\x64\Release\assimp-vc142-mt
     <ClCompile Include="Physics\Support.cpp" />
     <ClCompile Include="Shapes\Cube.cpp" />
     <ClCompile Include="Shapes\Plane.cpp" />
+    <ClCompile Include="Shapes\RigidBodyShape.cpp" />
     <ClCompile Include="Shapes\RigidBodySphere.cpp" />
     <ClCompile Include="Shapes\Shape.cpp" />
     <ClCompile Include="Shapes\Sphere.cpp">
