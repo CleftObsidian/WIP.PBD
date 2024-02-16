@@ -439,8 +439,6 @@ void RigidBodyGame::Update(_In_ FLOAT deltaTime)
 	LARGE_INTEGER frequency;
 	QueryPerformanceCounter(&startSimTime);
 
-	SimulatePhysics();
-
 	QueryPerformanceCounter(&endSimTime);
 	QueryPerformanceFrequency(&frequency);
 
@@ -533,67 +531,10 @@ void RigidBodyGame::Render(void)
 	m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
 }
 
-HRESULT RigidBodyGame::AddShape(std::shared_ptr<DX12Library::RigidBodyShape> shape)
+size_t RigidBodyGame::AddShape(std::shared_ptr<DX12Library::RigidBodyShape> shape)
 {
-	m_shapes.emplace(m_shapes.size(), shape);
+	size_t id = m_shapes.size();
+	m_shapes.emplace(id, shape);
 
-	return S_OK;
-}
-
-void RigidBodyGame::CollectCollisionPairs(void)
-{
-	m_collisionPairs.clear();
-
-	std::unordered_map<size_t, std::shared_ptr<DX12Library::RigidBodyShape>>::iterator shape;
-	for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
-	{
-		std::unordered_map<size_t, std::shared_ptr<DX12Library::RigidBodyShape>>::iterator otherShape = shape;
-		for (++otherShape; otherShape != m_shapes.end(); ++otherShape)
-		{
-			if (true == shape->second->CheckCollision(otherShape->second))
-			{
-				m_collisionPairs.emplace_back(shape->first, otherShape->first);
-			}
-		}
-	}
-}
-
-void RigidBodyGame::SimulatePhysics(void)
-{
-	CollectCollisionPairs();
-
-	constexpr float deltaTime = TIMESTEP / static_cast<float>(SUBSTEPS);
-	for (size_t i = 0; i < SUBSTEPS; ++i)
-	{
-		std::unordered_map<size_t, std::shared_ptr<DX12Library::RigidBodyShape>>::iterator shape;
-		for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
-		{
-			shape->second->PredictPosition(deltaTime);
-		}
-
-		// Solve constraints
-		for (size_t count = 0; count < SOLVER_ITERATION; ++count)
-		{
-			std::vector<std::pair<size_t, size_t>>::iterator collision;
-			for (collision = m_collisionPairs.begin(); collision != m_collisionPairs.end(); ++collision)
-			{
-				m_shapes[collision->first]->SolveShapeCollision(m_shapes[collision->second]);
-			}
-
-			for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
-			{
-				shape->second->SolveFloorConstraint();
-				shape->second->SolveSelfDistanceConstraints();
-			}
-		}
-
-		for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
-		{
-			shape->second->UpdateVertices(deltaTime);
-		}
-		for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
-		{
-			shape->second->Update(deltaTime);
-		}
-	}
+	return id;
 }

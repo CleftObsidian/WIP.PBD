@@ -51,9 +51,9 @@ namespace DX12Library
 
 		static constexpr float FRICTION_S = 0.74f;
 		static constexpr float FRICTION_K = 0.57f;
-		
-		static constexpr float STIFFNESS = 2.0f * 100000000000.0f;
-		static constexpr float COMPLIANCE = 1.0f / STIFFNESS;
+
+		static constexpr float STIFFNESS = 2.0f * 100000000000.0f;	// metal stiffness = 2 * 10^11 N/m^2
+		static constexpr float COMPLIANCE = 1.0f / STIFFNESS;		// inverse of stiffness
 
 		XMVECTOR m_x;
 		XMVECTOR m_p = XMVectorZero();

@@ -13,15 +13,37 @@ namespace DX12Library
 	std::unique_ptr<Assimp::Importer> RigidBodySphere::sm_pImporter = std::make_unique<Assimp::Importer>();
 	std::vector<Vertex> RigidBodySphere::m_aVertices;
 	std::vector<WORD> RigidBodySphere::m_aIndices;
-	float RigidBodySphere::m_radius = 0.51f;
 	const aiScene* RigidBodySphere::m_pScene = nullptr;
 	std::vector<BasicMeshEntry> RigidBodySphere::m_aMeshes;
+	XMMATRIX RigidBodySphere::inertiaTensor;
+	XMMATRIX RigidBodySphere::inverseInertiaTensor;
 
-	RigidBodySphere::RigidBodySphere(_In_ const XMVECTOR& position)
-		: Shape()
-		, m_x(position)
+	RigidBodySphere::RigidBodySphere(_In_ const XMVECTOR& position, _In_ const XMVECTOR& rotation, _In_ const XMVECTOR& scale, _In_ float mass, _In_ std::vector<Collider>& colliders,
+		_In_ float staticFrictionCoefficient, _In_ float dynamicFrictionCoefficient, _In_ float restitutionCoefficient, bool bIsFixed)
+		: RigidBodyShape(position, rotation, scale, mass, colliders, staticFrictionCoefficient, dynamicFrictionCoefficient, restitutionCoefficient, bIsFixed)
 	{
-		m_world *= XMMatrixScaling(m_radius, m_radius, m_radius) * XMMatrixTranslationFromVector(position);
+		if (bIsFixed)
+		{
+			if (true == bIsFixed)
+			{
+				inverseMass = 0.0f;
+				inertiaTensor.r[0] = XMVectorZero();
+				inertiaTensor.r[1] = XMVectorZero();
+				inertiaTensor.r[2] = XMVectorZero();
+				inertiaTensor.r[3] = XMVectorZero();
+				inverseInertiaTensor.r[0] = XMVectorZero();
+				inverseInertiaTensor.r[1] = XMVectorZero();
+				inverseInertiaTensor.r[2] = XMVectorZero();
+				inverseInertiaTensor.r[3] = XMVectorZero();
+			}
+			else
+			{
+				inverseMass = 1.0f / mass;
+				inertiaTensor = GetCollidersDefaultInertiaTensor(colliders, mass);
+				inverseInertiaTensor = XMMatrixInverse(nullptr, inertiaTensor);
+				assert(false == XMMatrixIsInfinite(inverseInertiaTensor) && false == XMMatrixIsNaN(inverseInertiaTensor));
+			}
+		}
 	}
 
 	void RigidBodySphere::Initialize(_In_ ID3D12Device* pDevice)
@@ -197,128 +219,5 @@ namespace DX12Library
 	UINT RigidBodySphere::GetNumIndices(void) const
 	{
 		return static_cast<UINT>(m_aIndices.size());
-	}
-
-	bool RigidBodySphere::CheckCollision(const std::shared_ptr<DX12Library::RigidBodyShape> collideShape) const
-	{
-		RigidBodySphere* collideRigidBodySphere = static_cast<RigidBodySphere*>(collideShape.get());
-
-		XMVECTOR centerToOtherCenter = collideRigidBodySphere->m_p - this->m_p;
-		float centerToOtherCenterDistanceSq = XMVectorGetX(XMVector3LengthSq(centerToOtherCenter));
-		float sumRadius = collideRigidBodySphere->m_radius + this->m_radius;
-		if (centerToOtherCenterDistanceSq < sumRadius * sumRadius)
-		{
-			return true;
-		}
-
-		return false;
-	}
-
-	void RigidBodySphere::PredictPosition(_In_ FLOAT deltaTime)
-	{
-		// Get position vector(x)
-		XMVECTOR scale;		// not use
-		XMVECTOR rotation;	// not use
-		XMMatrixDecompose(&scale, &rotation, &m_x, m_world);
-
-		// Estimate next position(p) only considering gravity (Euler Method)
-		m_velocity += deltaTime * GRAVITY;		// v <- v + dt * (gravity acceleration)
-		m_p = m_x + deltaTime * m_velocity;		// p <- x + dt * v
-	}
-
-	void RigidBodySphere::SolveSelfDistanceConstraints(void)
-	{
-		// RigidBodySphere doesn't need to solve self distance
-	}
-
-	void RigidBodySphere::SolveShapeCollision(std::shared_ptr<DX12Library::RigidBodyShape> collideShape)
-	{
-		RigidBodySphere* collideRigidBodySphere = static_cast<RigidBodySphere*>(collideShape.get());
-
-		XMVECTOR centerToOtherCenter = collideRigidBodySphere->m_p - this->m_p;
-		float centerToOtherCenterDistance = XMVectorGetX(XMVector3Length(centerToOtherCenter));
-		float sumRadius = collideRigidBodySphere->m_radius + this->m_radius;
-		if (centerToOtherCenterDistance < sumRadius)
-		{
-			XMVECTOR collisionNormal = -XMVector3Normalize(centerToOtherCenter);
-
-			// C(p_i, p_j) = |p_i - p_j| - (r_i + r_j) >= 0
-			float C = centerToOtherCenterDistance - sumRadius;
-			float dLambda = -C / (XMVectorGetX(XMVector3Dot(collisionNormal, collisionNormal)) + COMPLIANCE);
-			dLambda *= 0.5f;
-			XMVECTOR dp = dLambda * collisionNormal;
-
-			this->m_p += dp;
-			collideRigidBodySphere->m_p -= dp;
-
-			// Friction
-			XMVECTOR displacement = (this->m_p - this->m_x) - (collideRigidBodySphere->m_p - collideRigidBodySphere->m_x);
-			displacement -= XMVectorGetX(XMVector3Dot(displacement, collisionNormal)) * collisionNormal;
-			float disLength = XMVectorGetX(XMVector3Length(displacement));
-			if (disLength < FLT_EPSILON)
-			{
-				return;
-			}
-			float sFric = (this->FRICTION_S + collideRigidBodySphere->FRICTION_S) * 0.5f;
-			float kFric = (this->FRICTION_K + collideRigidBodySphere->FRICTION_K) * 0.5f;
-			if (disLength < sFric * -C)
-			{
-				this->m_p -= 0.5f * displacement;
-				collideRigidBodySphere->m_p += 0.5f * displacement;
-			}
-			else
-			{
-				XMVECTOR delta = 0.5f * displacement * fminf(kFric * -C / disLength, 1.0f);
-				this->m_p -= delta;
-				collideRigidBodySphere->m_p += delta;
-			}
-		}
-	}
-
-	void RigidBodySphere::SolveFloorConstraint(void)
-	{
-		if (-10.0f < XMVectorGetX(m_p) && XMVectorGetX(m_p) < 10.0f)
-		{
-			if (-10.0f < XMVectorGetZ(m_p) && XMVectorGetZ(m_p) < 10.0f)
-			{
-				// Solve floor(limited y-height) constraint
-				if (XMVectorGetY(m_p) - m_radius < 0.0f)
-				{
-					// C(p) = p_y - radius >= 0
-					float C = XMVectorGetY(m_p) - m_radius;
-					XMVECTOR gradC = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-					// lambda = -C(p) / |gradC|^2
-					float dLambda = -C / (XMVectorGetX(XMVector3Dot(gradC, gradC)) + COMPLIANCE);
-					XMVECTOR dp = dLambda * gradC;
-
-					m_p += dp;
-
-					// Friction
-					XMVECTOR displacement = m_p - m_x;
-					displacement -= XMVectorGetX(XMVector3Dot(displacement, gradC)) * gradC;
-					float disLength = XMVectorGetX(XMVector3Length(displacement));
-					if (disLength < FLT_EPSILON)
-					{
-						return;
-					}
-					if (disLength < (FRICTION_S * dLambda))
-					{
-						m_p -= displacement;
-					}
-					else
-					{
-						m_p -= displacement * fminf(FRICTION_K * dLambda / disLength, 1.0f);
-					}
-				}
-			}
-		}
-	}
-
-	void RigidBodySphere::UpdateVertices(_In_ FLOAT deltaTime)
-	{
-		// Update velocity and position
-		m_velocity = (m_p - m_x) / deltaTime;
-
-		m_world *= XMMatrixTranslationFromVector(m_p - m_x);
 	}
 }

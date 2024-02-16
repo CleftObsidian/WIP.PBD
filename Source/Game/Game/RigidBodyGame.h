@@ -16,10 +16,7 @@ public:
 	virtual void Update(_In_ FLOAT deltaTime);
 	virtual void Render(void);
 
-	HRESULT AddShape(std::shared_ptr<DX12Library::RigidBodyShape> shape);
-
-	void CollectCollisionPairs(void);
-	void SimulatePhysics(void);
+	size_t AddShape(std::shared_ptr<DX12Library::RigidBodyShape> shape);
 
 private:
 	// Pipeline objects.

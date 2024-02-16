@@ -16,7 +16,8 @@ namespace DX12Library
 	{
 	public:
 		RigidBodySphere(void) = delete;
-		RigidBodySphere(_In_ const XMVECTOR& position);
+		RigidBodySphere(_In_ const XMVECTOR& position, _In_ const XMVECTOR& rotation, _In_ const XMVECTOR& scale, _In_ float mass, _In_ std::vector<Collider>& colliders,
+			_In_ float staticFrictionCoefficient, _In_ float dynamicFrictionCoefficient, _In_ float restitutionCoefficient, bool bIsFixed);
 		virtual ~RigidBodySphere() = default;
 
 		virtual void Initialize(_In_ ID3D12Device* pDevice);
@@ -30,15 +31,7 @@ namespace DX12Library
 		virtual UINT GetNumVertices(void) const;
 		virtual UINT GetNumIndices(void) const;
 
-		virtual bool CheckCollision(const std::shared_ptr<DX12Library::RigidBodyShape> collideShape) const;
-
-		virtual void PredictPosition(_In_ FLOAT deltaTime);
-		virtual void SolveSelfDistanceConstraints(void);
-		virtual void SolveShapeCollision(std::shared_ptr<DX12Library::RigidBodyShape> collideShape);
-		virtual void SolveFloorConstraint(void);
-		virtual void UpdateVertices(_In_ FLOAT deltaTime);
-
-	private:
+	public:
 		static ComPtr<ID3D12Resource> m_vertexBuffer;
 		static D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView;
 		static ComPtr<ID3D12Resource> m_indexBuffer;
@@ -49,18 +42,11 @@ namespace DX12Library
 		static std::vector<Vertex> m_aVertices;
 		static std::vector<WORD> m_aIndices;
 
-		static constexpr float FRICTION_S = 0.74f;
-		static constexpr float FRICTION_K = 0.57f;
-
-		static constexpr float STIFFNESS = 2.0f * 100000000000.0f;	// metal stiffness = 2 * 10^11 N/m^2
-		static constexpr float COMPLIANCE = 1.0f / STIFFNESS;		// inverse of stiffness
-
-		XMVECTOR m_x;
-		XMVECTOR m_p = XMVectorZero();
-		XMVECTOR m_velocity = XMVectorZero();
-		static float m_radius;
-
 		static const aiScene* m_pScene;
 		static std::vector<BasicMeshEntry> m_aMeshes;
+
+		// Physics
+		static XMMATRIX inertiaTensor;
+		static XMMATRIX inverseInertiaTensor;
 	};
 }
