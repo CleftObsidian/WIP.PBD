@@ -10,6 +10,6 @@ Release/
 [Ss]ource/Game/Contents/Texture/*
 
 !*.sln
-!External/DirectXTK12/Library
-!External/Assimp/Library
+!External/DirectXTK12/**
+!External/Assimp/**
 !Source/Game/Contents/Texture/brickwall.dds

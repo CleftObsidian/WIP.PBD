@@ -199,7 +199,7 @@ namespace DX12Library
 		return static_cast<UINT>(m_aIndices.size());
 	}
 
-	bool RigidBodySphere::CheckCollision(const std::shared_ptr<DX12Library::Shape> collideShape) const
+	bool RigidBodySphere::CheckCollision(const std::shared_ptr<DX12Library::RigidBodyShape> collideShape) const
 	{
 		RigidBodySphere* collideRigidBodySphere = static_cast<RigidBodySphere*>(collideShape.get());
 
@@ -231,7 +231,7 @@ namespace DX12Library
 		// RigidBodySphere doesn't need to solve self distance
 	}
 
-	void RigidBodySphere::SolveShapeCollision(std::shared_ptr<DX12Library::Shape> collideShape)
+	void RigidBodySphere::SolveShapeCollision(std::shared_ptr<DX12Library::RigidBodyShape> collideShape)
 	{
 		RigidBodySphere* collideRigidBodySphere = static_cast<RigidBodySphere*>(collideShape.get());
 

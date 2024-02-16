@@ -22,14 +22,6 @@ namespace DX12Library
 		virtual UINT GetNumVertices(void) const = 0;
 		virtual UINT GetNumIndices(void) const = 0;
 
-		virtual bool CheckCollision(const std::shared_ptr<DX12Library::RigidBodyShape> collideShape) const = 0;
-
-		virtual void PredictPosition(_In_ FLOAT deltaTime) = 0;
-		virtual void SolveSelfDistanceConstraints(void) = 0;
-		virtual void SolveShapeCollision(std::shared_ptr<DX12Library::RigidBodyShape> collideShape) = 0;
-		virtual void SolveFloorConstraint(void) = 0;
-		virtual void UpdateVertices(_In_ FLOAT deltaTime) = 0;
-
 		const XMMATRIX& GetWorldMatrix(void) const;
 
 	protected:

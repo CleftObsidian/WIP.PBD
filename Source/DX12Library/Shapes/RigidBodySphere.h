@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Shape.h"
+#include "RigidBodyShape.h"
 
 struct aiScene;
 struct aiMesh;
@@ -12,7 +12,7 @@ namespace Assimp
 
 namespace DX12Library
 {
-	class RigidBodySphere : public Shape
+	class RigidBodySphere : public RigidBodyShape
 	{
 	public:
 		RigidBodySphere(void) = delete;
@@ -30,11 +30,11 @@ namespace DX12Library
 		virtual UINT GetNumVertices(void) const;
 		virtual UINT GetNumIndices(void) const;
 
-		virtual bool CheckCollision(const std::shared_ptr<DX12Library::Shape> collideShape) const;
+		virtual bool CheckCollision(const std::shared_ptr<DX12Library::RigidBodyShape> collideShape) const;
 
 		virtual void PredictPosition(_In_ FLOAT deltaTime);
 		virtual void SolveSelfDistanceConstraints(void);
-		virtual void SolveShapeCollision(std::shared_ptr<DX12Library::Shape> collideShape);
+		virtual void SolveShapeCollision(std::shared_ptr<DX12Library::RigidBodyShape> collideShape);
 		virtual void SolveFloorConstraint(void);
 		virtual void UpdateVertices(_In_ FLOAT deltaTime);
 

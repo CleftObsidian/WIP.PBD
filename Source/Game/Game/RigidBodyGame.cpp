@@ -1,6 +1,5 @@
-#include "RigidBodyGame.h"
-#include "Shapes/Cube.h"
-#include "Shapes/Sphere.h"
+#include "Game/RigidBodyGame.h"
+#include "Shapes/RigidBodySphere.h"
 
 RigidBodyGame::RigidBodyGame(_In_ PCWSTR pszRigidBodyGameName)
 	: GameSample(pszRigidBodyGameName)
@@ -338,7 +337,7 @@ void RigidBodyGame::InitDevice(void)
 	}
 
 	// Initialize the shapes.
-	std::unordered_map<const std::wstring, std::shared_ptr<DX12Library::Shape>>::iterator shape;
+	std::unordered_map<size_t, std::shared_ptr<DX12Library::RigidBodyShape>>::iterator shape;
 	for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
 	{
 		shape->second->Initialize(m_device.Get());
@@ -380,18 +379,16 @@ void RigidBodyGame::HandleInput(_In_ const DirectionsInput& directions, _In_ con
 void RigidBodyGame::Update(_In_ FLOAT deltaTime)
 {
 	// spawn the sphere
-	if (false)
+	if (true)
 	{
 		static size_t counting = 0;
-		static size_t shapeNumber = 0;
 		const XMVECTOR position = XMVectorSet(static_cast<float>(rand() % 10) - 5.0f, static_cast<float>(rand() % 10) + 20.0f, static_cast<float>(rand() % 10) - 5.0f, 0.0f);
-		static const std::wstring shapeName = L"Shape";
 		if (1 < counting)
 		{
-			std::shared_ptr<DX12Library::Shape> shape = std::make_shared<DX12Library::Sphere>(position);
+			std::shared_ptr<DX12Library::RigidBodyShape> shape = std::make_shared<DX12Library::RigidBodySphere>(position);
 			shape->Initialize(m_device.Get());
 
-			this->AddShape((shapeName + std::to_wstring(shapeNumber)).c_str(), shape);
+			this->AddShape(shape);
 
 			// Signal and increment the fence value.
 			const UINT64 fence = m_fenceValue;
@@ -405,7 +402,6 @@ void RigidBodyGame::Update(_In_ FLOAT deltaTime)
 				WaitForSingleObject(m_fenceEvent, INFINITE);
 			}
 
-			++shapeNumber;
 			counting = 0;
 		}
 		++counting;
@@ -413,8 +409,8 @@ void RigidBodyGame::Update(_In_ FLOAT deltaTime)
 
 	// delete the falling shape
 	{
-		const wchar_t* eraseShapeName = nullptr;
-		std::unordered_map<const std::wstring, std::shared_ptr<DX12Library::Shape>>::iterator shape;
+		size_t eraseShapeID = SIZE_MAX;
+		std::unordered_map<size_t, std::shared_ptr<DX12Library::RigidBodyShape>>::iterator shape;
 		for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
 		{
 			XMVECTOR s;
@@ -426,14 +422,14 @@ void RigidBodyGame::Update(_In_ FLOAT deltaTime)
 
 			if (XMVectorGetY(t) < -50.0f || shapeHeight < -50.0f)
 			{
-				eraseShapeName = shape->first.c_str();
+				eraseShapeID = shape->first;
 				break;
 			}
 		}
-		if (nullptr != eraseShapeName)
+		if (SIZE_MAX != eraseShapeID)
 		{
-			std::shared_ptr<DX12Library::Shape> eraseShape = m_shapes[eraseShapeName];
-			m_shapes.erase(eraseShapeName);
+			std::shared_ptr<DX12Library::RigidBodyShape> eraseShape = m_shapes[eraseShapeID];
+			m_shapes.erase(eraseShapeID);
 			eraseShape.reset();
 		}
 	}
@@ -493,7 +489,7 @@ void RigidBodyGame::Render(void)
 	m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 	m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
-	std::unordered_map<const std::wstring, std::shared_ptr<DX12Library::Shape>>::iterator shape;
+	std::unordered_map<size_t, std::shared_ptr<DX12Library::RigidBodyShape>>::iterator shape;
 	for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
 	{
 		m_commandList->IASetVertexBuffers(0, 1, &shape->second->GetVertexBufferView());
@@ -537,30 +533,26 @@ void RigidBodyGame::Render(void)
 	m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
 }
 
-HRESULT RigidBodyGame::AddShape(const std::wstring shapeName, std::shared_ptr<DX12Library::Shape> shape)
+HRESULT RigidBodyGame::AddShape(std::shared_ptr<DX12Library::RigidBodyShape> shape)
 {
-	if (m_shapes.find(shapeName) == m_shapes.end())
-	{
-		m_shapes.emplace(shapeName, shape);
-		return S_OK;
-	}
+	m_shapes.emplace(m_shapes.size(), shape);
 
-	return E_FAIL;
+	return S_OK;
 }
 
 void RigidBodyGame::CollectCollisionPairs(void)
 {
 	m_collisionPairs.clear();
 
-	std::unordered_map<const std::wstring, std::shared_ptr<DX12Library::Shape>>::iterator shape;
+	std::unordered_map<size_t, std::shared_ptr<DX12Library::RigidBodyShape>>::iterator shape;
 	for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
 	{
-		std::unordered_map<const std::wstring, std::shared_ptr<DX12Library::Shape>>::iterator otherShape = shape;
+		std::unordered_map<size_t, std::shared_ptr<DX12Library::RigidBodyShape>>::iterator otherShape = shape;
 		for (++otherShape; otherShape != m_shapes.end(); ++otherShape)
 		{
 			if (true == shape->second->CheckCollision(otherShape->second))
 			{
-				m_collisionPairs.insert(std::make_pair(shape->first + otherShape->first, std::make_pair(shape->first, otherShape->first)));
+				m_collisionPairs.emplace_back(shape->first, otherShape->first);
 			}
 		}
 	}
@@ -573,7 +565,7 @@ void RigidBodyGame::SimulatePhysics(void)
 	constexpr float deltaTime = TIMESTEP / static_cast<float>(SUBSTEPS);
 	for (size_t i = 0; i < SUBSTEPS; ++i)
 	{
-		std::unordered_map<const std::wstring, std::shared_ptr<DX12Library::Shape>>::iterator shape;
+		std::unordered_map<size_t, std::shared_ptr<DX12Library::RigidBodyShape>>::iterator shape;
 		for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
 		{
 			shape->second->PredictPosition(deltaTime);
@@ -582,10 +574,10 @@ void RigidBodyGame::SimulatePhysics(void)
 		// Solve constraints
 		for (size_t count = 0; count < SOLVER_ITERATION; ++count)
 		{
-			std::unordered_map<std::wstring, std::pair<std::wstring, std::wstring>>::iterator collision;
+			std::vector<std::pair<size_t, size_t>>::iterator collision;
 			for (collision = m_collisionPairs.begin(); collision != m_collisionPairs.end(); ++collision)
 			{
-				m_shapes[collision->second.first]->SolveShapeCollision(m_shapes[collision->second.second]);
+				m_shapes[collision->first]->SolveShapeCollision(m_shapes[collision->second]);
 			}
 
 			for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)

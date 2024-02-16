@@ -2,7 +2,7 @@
 
 #include "Game/GameSample.h"
 #include <unordered_map>
-#include "Shapes/Shape.h"
+#include "Shapes/RigidBodyShape.h"
 
 class RigidBodyGame final : public DX12Library::GameSample
 {
@@ -16,7 +16,7 @@ public:
 	virtual void Update(_In_ FLOAT deltaTime);
 	virtual void Render(void);
 
-	HRESULT AddShape(const std::wstring shapeName, std::shared_ptr<DX12Library::Shape> shape);
+	HRESULT AddShape(std::shared_ptr<DX12Library::RigidBodyShape> shape);
 
 	void CollectCollisionPairs(void);
 	void SimulatePhysics(void);
@@ -38,8 +38,8 @@ private:
 	// App resources.
 	ComPtr<ID3D12Resource> m_depthBuffer;
 	ConstantBuffer m_constantBuffer;
-	std::unordered_map<std::wstring, std::shared_ptr<DX12Library::Shape>> m_shapes;
-	std::unordered_map<std::wstring, std::pair<std::wstring, std::wstring>> m_collisionPairs;
+	std::unordered_map<size_t, std::shared_ptr<DX12Library::RigidBodyShape>> m_shapes;
+	std::vector<std::pair<size_t, size_t>> m_collisionPairs;
 
 	// Synchronization objects.
 	UINT m_frameIndex = 0;
