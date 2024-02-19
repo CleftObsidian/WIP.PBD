@@ -15,35 +15,11 @@ namespace DX12Library
 	std::vector<WORD> RigidBodySphere::m_aIndices;
 	const aiScene* RigidBodySphere::m_pScene = nullptr;
 	std::vector<BasicMeshEntry> RigidBodySphere::m_aMeshes;
-	XMMATRIX RigidBodySphere::inertiaTensor;
-	XMMATRIX RigidBodySphere::inverseInertiaTensor;
 
 	RigidBodySphere::RigidBodySphere(_In_ const XMVECTOR& position, _In_ const XMVECTOR& rotation, _In_ const XMVECTOR& scale, _In_ float mass, _In_ std::vector<Collider>& colliders,
 		_In_ float staticFrictionCoefficient, _In_ float dynamicFrictionCoefficient, _In_ float restitutionCoefficient, bool bIsFixed)
 		: RigidBodyShape(position, rotation, scale, mass, colliders, staticFrictionCoefficient, dynamicFrictionCoefficient, restitutionCoefficient, bIsFixed)
 	{
-		if (bIsFixed)
-		{
-			if (true == bIsFixed)
-			{
-				inverseMass = 0.0f;
-				inertiaTensor.r[0] = XMVectorZero();
-				inertiaTensor.r[1] = XMVectorZero();
-				inertiaTensor.r[2] = XMVectorZero();
-				inertiaTensor.r[3] = XMVectorZero();
-				inverseInertiaTensor.r[0] = XMVectorZero();
-				inverseInertiaTensor.r[1] = XMVectorZero();
-				inverseInertiaTensor.r[2] = XMVectorZero();
-				inverseInertiaTensor.r[3] = XMVectorZero();
-			}
-			else
-			{
-				inverseMass = 1.0f / mass;
-				inertiaTensor = GetCollidersDefaultInertiaTensor(colliders, mass);
-				inverseInertiaTensor = XMMatrixInverse(nullptr, inertiaTensor);
-				assert(false == XMMatrixIsInfinite(inverseInertiaTensor) && false == XMMatrixIsNaN(inverseInertiaTensor));
-			}
-		}
 	}
 
 	void RigidBodySphere::Initialize(_In_ ID3D12Device* pDevice)

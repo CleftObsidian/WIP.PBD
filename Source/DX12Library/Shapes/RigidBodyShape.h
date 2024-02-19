@@ -33,8 +33,13 @@ namespace DX12Library
 		virtual UINT GetNumIndices(void) const = 0;
 
 		const XMMATRIX GetWorldMatrix(void) const;
+		void AddForce(_In_ XMVECTOR position, _In_ XMVECTOR force, _In_ bool bIsLocalCoords);
+		const XMMATRIX GetDynamicInertiaTensor(void) const;
+		const XMMATRIX GetDynamicInverseInertiaTensor(void) const;
 
 	public:
+		size_t id;
+
 		//XMMATRIX m_world = XMMatrixIdentity();
 		XMVECTOR worldPosition;
 		XMVECTOR worldRotation;
@@ -45,8 +50,8 @@ namespace DX12Library
 		float boundingSphereRadius;
 		std::vector<PhysicsForce> forces;
 		float inverseMass;
-		//XMMATRIX inertiaTensor;
-		//XMMATRIX inverseInertiaTensor;
+		XMMATRIX inertiaTensor;
+		XMMATRIX inverseInertiaTensor;
 		XMVECTOR linearVelocity;
 		XMVECTOR angularVelocity;
 		bool bFixed;

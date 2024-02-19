@@ -44,9 +44,5 @@ namespace DX12Library
 
 		static const aiScene* m_pScene;
 		static std::vector<BasicMeshEntry> m_aMeshes;
-
-		// Physics
-		static XMMATRIX inertiaTensor;
-		static XMMATRIX inverseInertiaTensor;
 	};
 }

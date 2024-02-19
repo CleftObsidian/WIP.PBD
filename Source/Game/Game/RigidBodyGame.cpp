@@ -534,6 +534,7 @@ void RigidBodyGame::Render(void)
 size_t RigidBodyGame::AddShape(std::shared_ptr<DX12Library::RigidBodyShape> shape)
 {
 	size_t id = m_shapes.size();
+	shape->id = id;
 	m_shapes.emplace(id, shape);
 
 	return id;
