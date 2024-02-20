@@ -2,6 +2,28 @@
 #include "Clipping.h"
 #include <unordered_map>
 
+template<>
+struct std::hash<XMVECTOR>
+{
+	size_t operator()(const XMVECTOR& v) const noexcept
+	{
+		size_t h1 = std::hash<float>{}(XMVectorGetX(v));
+		size_t h2 = std::hash<float>{}(XMVectorGetY(v));
+		size_t h3 = std::hash<float>{}(XMVectorGetZ(v));
+		
+		return (h1 + h2 + h3) % SIZE_MAX;
+	}
+};
+
+template<>
+struct std::equal_to<XMVECTOR>
+{
+	bool operator()(const XMVECTOR& v1, const XMVECTOR& v2) const noexcept
+	{
+		return (XMVectorGetX(v1) == XMVectorGetX(v2)) && (XMVectorGetY(v1) == XMVectorGetY(v2)) && (XMVectorGetZ(v1) == XMVectorGetZ(v2));
+	}
+};
+
 static bool doTrianglesShareSameVertex(XMINT3 t1, XMINT3 t2)
 {
 	return t1.x == t2.x || t1.x == t2.y || t1.x == t2.z ||
@@ -40,16 +62,16 @@ static bool isNeighborAlreadyInVertexToNeighborsMap(std::vector<WORD>& vertexToN
 	return false;
 }
 
-static void collectFacesPlanarTo(std::vector<XMFLOAT3>* hull, std::vector<XMINT3>& hullTriangleFaces, std::vector<WORD>* triangleFacesToNeighborFacesMap,
+static void collectFacesPlanarTo(std::vector<XMVECTOR>* hull, std::vector<XMINT3>& hullTriangleFaces, std::vector<WORD>* triangleFacesToNeighborFacesMap,
 	std::vector<bool>& abIsTriangleFaceAlreadyProcessed, WORD faceToTestIndex, XMVECTOR tangentNormal, std::vector<XMINT3>* out)
 {
 	XMINT3 faceToTest = hullTriangleFaces[faceToTestIndex];
-	XMFLOAT3 v1 = hull->at(faceToTest.x);
-	XMFLOAT3 v2 = hull->at(faceToTest.y);
-	XMFLOAT3 v3 = hull->at(faceToTest.z);
+	XMVECTOR v1 = hull->at(faceToTest.x);
+	XMVECTOR v2 = hull->at(faceToTest.y);
+	XMVECTOR v3 = hull->at(faceToTest.z);
 
-	XMVECTOR v12 = XMLoadFloat3(&v2) - XMLoadFloat3(&v1);
-	XMVECTOR v13 = XMLoadFloat3(&v3) - XMLoadFloat3(&v1);
+	XMVECTOR v12 = v2 - v1;
+	XMVECTOR v13 = v3 - v1;
 	XMVECTOR faceNormal = XMVector3Normalize(XMVector3Cross(v12, v13));
 
 	if (true == abIsTriangleFaceAlreadyProcessed[faceToTestIndex])
@@ -74,18 +96,18 @@ static void collectFacesPlanarTo(std::vector<XMFLOAT3>* hull, std::vector<XMINT3
 	}
 }
 
-static int32_t getEdgeIndex(const std::vector<XMINT2> edges, XMINT2 edge)
+static WORD getEdgeIndex(const std::vector<XMINT2> edges, XMINT2 edge)
 {
 	for (size_t i = 0; i < edges.size(); ++i)
 	{
 		XMINT2 currentEdge = edges[i];
 		if (currentEdge.x == edge.x && currentEdge.y == edge.y)
 		{
-			return i;
+			return static_cast<WORD>(i);
 		}
 		if (currentEdge.x == edge.y && currentEdge.y == edge.x)
 		{
-			return i;
+			return static_cast<WORD>(i);
 		}
 	}
 
@@ -105,7 +127,7 @@ static ColliderConvexHullFace createConvexHullFace(std::vector<XMINT3> triangles
 		XMINT2 edge2 = { triangle.y, triangle.z };
 		XMINT2 edge3 = { triangle.z, triangle.x };
 
-		int32_t edge1Index = getEdgeIndex(edges, edge1);
+		WORD edge1Index = getEdgeIndex(edges, edge1);
 		if (0 <= edge1Index)
 		{
 			edges.erase(edges.begin() + edge1Index);
@@ -115,7 +137,7 @@ static ColliderConvexHullFace createConvexHullFace(std::vector<XMINT3> triangles
 			edges.push_back(edge1);
 		}
 
-		int32_t edge2Index = getEdgeIndex(edges, edge2);
+		WORD edge2Index = getEdgeIndex(edges, edge2);
 		if (0 <= edge2Index)
 		{
 			edges.erase(edges.begin() + edge2Index);
@@ -125,7 +147,7 @@ static ColliderConvexHullFace createConvexHullFace(std::vector<XMINT3> triangles
 			edges.push_back(edge2);
 		}
 
-		int32_t edge3Index = getEdgeIndex(edges, edge3);
+		WORD edge3Index = getEdgeIndex(edges, edge3);
 		if (0 <= edge3Index)
 		{
 			edges.erase(edges.begin() + edge3Index);
@@ -151,7 +173,7 @@ static ColliderConvexHullFace createConvexHullFace(std::vector<XMINT3> triangles
 
 			if (currentEdge.y == candidateEdge.y)
 			{
-				int32_t temp = candidateEdge.x;
+				WORD temp = candidateEdge.x;
 				candidateEdge.x = candidateEdge.y;
 				candidateEdge.y = temp;
 			}
@@ -179,19 +201,19 @@ static ColliderConvexHullFace createConvexHullFace(std::vector<XMINT3> triangles
 	return face;
 }
 
-Collider CreateColliderConvexHull(const std::vector<XMFLOAT3> vertices, const std::vector<WORD> indices)
+Collider CreateColliderConvexHull(const std::vector<Vertex> vertices, const std::vector<WORD> indices)
 {
-	std::unordered_map<XMFLOAT3, WORD> vertexToIndexMap;
+	std::unordered_map<XMVECTOR, WORD> vertexToIndexMap;
 
 	// Build hull, eliminating duplicated vertex
-	std::vector<XMFLOAT3>* hull = new std::vector<XMFLOAT3>;
+	std::vector<XMVECTOR>* hull = new std::vector<XMVECTOR>;
 	for (size_t i = 0; i < vertices.size(); ++i)
 	{
-		XMFLOAT3 currentVertex = vertices[i];
+		XMVECTOR currentVertex = XMLoadFloat3(&vertices[i].position);
 		WORD currentIndex;
 		if (vertexToIndexMap.find(currentVertex) == vertexToIndexMap.end())
 		{
-			currentIndex = hull->size();
+			currentIndex = static_cast<WORD>(hull->size());
 			hull->push_back(currentVertex);
 			vertexToIndexMap.emplace(currentVertex, currentIndex);
 		}
@@ -204,9 +226,9 @@ Collider CreateColliderConvexHull(const std::vector<XMFLOAT3> vertices, const st
 		WORD i1 = indices[i];
 		WORD i2 = indices[i + 1];
 		WORD i3 = indices[i + 2];
-		XMFLOAT3 v1 = vertices[i1];
-		XMFLOAT3 v2 = vertices[i2];
-		XMFLOAT3 v3 = vertices[i3];
+		XMVECTOR v1 = XMLoadFloat3(&vertices[i1].position);
+		XMVECTOR v2 = XMLoadFloat3(&vertices[i2].position);
+		XMVECTOR v3 = XMLoadFloat3(&vertices[i3].position);
 
 		WORD new_i1 = vertexToIndexMap[v1];
 		WORD new_i2 = vertexToIndexMap[v2];
@@ -240,7 +262,7 @@ Collider CreateColliderConvexHull(const std::vector<XMFLOAT3> vertices, const st
 			XMINT3 faceToTest = hullTriangleFaces[j];
 			if (true == doTrianglesShareSameVertex(triangleFace, faceToTest))
 			{
-				triangleFacesToNeighborFacesMap[i].push_back(j);
+				triangleFacesToNeighborFacesMap[i].push_back(static_cast<WORD>(j));
 			}
 		}
 
@@ -284,25 +306,25 @@ Collider CreateColliderConvexHull(const std::vector<XMFLOAT3> vertices, const st
 		}
 
 		XMINT3 triangleFace = hullTriangleFaces[i];
-		XMFLOAT3 v1 = hull->at(triangleFace.x);
-		XMFLOAT3 v2 = hull->at(triangleFace.y);
-		XMFLOAT3 v3 = hull->at(triangleFace.z);
+		XMVECTOR v1 = hull->at(triangleFace.x);
+		XMVECTOR v2 = hull->at(triangleFace.y);
+		XMVECTOR v3 = hull->at(triangleFace.z);
 
-		XMVECTOR v12 = XMLoadFloat3(&v2) - XMLoadFloat3(&v1);
-		XMVECTOR v13 = XMLoadFloat3(&v3) - XMLoadFloat3(&v1);
+		XMVECTOR v12 = v2 - v1;
+		XMVECTOR v13 = v3 - v1;
 		XMVECTOR normal = XMVector3Normalize(XMVector3Cross(v12, v13));
 
 		std::vector<XMINT3> planarFaces;
-		collectFacesPlanarTo(hull, hullTriangleFaces, triangleFacesToNeighborFacesMap, abIsTriangleFaceAlreadyProcessed, i, normal, &planarFaces);
+		collectFacesPlanarTo(hull, hullTriangleFaces, triangleFacesToNeighborFacesMap, abIsTriangleFaceAlreadyProcessed, static_cast<WORD>(i), normal, &planarFaces);
 
 		ColliderConvexHullFace newFace = createConvexHullFace(planarFaces, normal);
-		WORD newFaceIndex = faces->size();
+		WORD newFaceIndex = static_cast<WORD>(faces->size());
 		faces->push_back(newFace);
 
 		// Fill vertex to faces map accordingly
-		for (size_t i = 0; i < planarFaces.size(); ++i)
+		for (size_t j = 0; j < planarFaces.size(); ++j)
 		{
-			XMINT3 planarFace = planarFaces[i];
+			XMINT3 planarFace = planarFaces[j];
 			vertexToFacesMap[planarFace.x].push_back(newFaceIndex);
 			vertexToFacesMap[planarFace.y].push_back(newFaceIndex);
 			vertexToFacesMap[planarFace.z].push_back(newFaceIndex);
@@ -310,14 +332,15 @@ Collider CreateColliderConvexHull(const std::vector<XMFLOAT3> vertices, const st
 	}
 
 	// Prepare face to neighbors map
-	std::vector<WORD>* faceToNeighborFacesMap = new std::vector<WORD>[faces->size()];
+	size_t numFaces = faces->size();
+	std::vector<WORD>* faceToNeighborFacesMap = new std::vector<WORD>[numFaces];
 
 	// Fill faces to neighbor faces map
-	for (size_t i = 0; i < faces->size(); ++i)
+	for (size_t i = 0; i < numFaces; ++i)
 	{
 		ColliderConvexHullFace face = faces->at(i);
 
-		for (size_t j = 0; j < faces->size(); ++j)
+		for (size_t j = 0; j < numFaces; ++j)
 		{
 			if (i == j)
 			{
@@ -327,7 +350,7 @@ Collider CreateColliderConvexHull(const std::vector<XMFLOAT3> vertices, const st
 			ColliderConvexHullFace candidateFace = faces->at(j);
 			if (doFacesShareSameVertex(face.elements, candidateFace.elements))
 			{
-				faceToNeighborFacesMap[i].push_back(j);
+				faceToNeighborFacesMap[i].push_back(static_cast<WORD>(j));
 			}
 		}
 	}
@@ -370,9 +393,9 @@ static void updateCollider(Collider* collider, XMVECTOR translation, const XMVEC
 		XMMATRIX modelMatrixNoScale = XMMatrixRotationQuaternion(rotationQ) * XMMatrixTranslationFromVector(translation);
 		for (size_t i = 0; i < collider->convexHull.transformedVertices->size(); ++i)
 		{
-			XMVECTOR vertex = XMLoadFloat3(&collider->convexHull.vertices->at(i));
+			XMVECTOR vertex = collider->convexHull.vertices->at(i);
 			XMVECTOR transformedVertex = XMVector3Transform(vertex, modelMatrixNoScale);
-			XMStoreFloat3(&collider->convexHull.transformedVertices->at(i), transformedVertex);
+			collider->convexHull.transformedVertices->at(i) = transformedVertex;
 		}
 
 		for (size_t i = 0; i < collider->convexHull.transformedFaces->size(); ++i)
@@ -384,9 +407,6 @@ static void updateCollider(Collider* collider, XMVECTOR translation, const XMVEC
 		break;
 	case ColliderType::SPHERE:
 		collider->sphere.center = translation;
-		break;
-	default:
-		assert(false);
 		break;
 	}
 }
@@ -420,8 +440,6 @@ static void destroyCollider(Collider* collider)
 		break;
 	case ColliderType::SPHERE:
 		break;
-	default:
-		break;
 	}
 }
 
@@ -434,11 +452,11 @@ void DestroyColliders(std::vector<Collider>& colliders)
 	}
 }
 
-XMMATRIX GetCollidersDefaultInertiaTensor(std::vector<Collider>& colliders, float mass)
+XMMATRIX GetCollidersDefaultInertiaTensor(const std::vector<Collider>& colliders, float mass)
 {
 	if (1 == colliders.size())
 	{
-		Collider* collider = &colliders[0];
+		const Collider* collider = &colliders[0];
 
 		if (collider->type == ColliderType::SPHERE)
 		{
@@ -446,7 +464,6 @@ XMMATRIX GetCollidersDefaultInertiaTensor(std::vector<Collider>& colliders, floa
 
 			float inertia = 2.0f / 5.0f * mass * collider->sphere.radius * collider->sphere.radius;
 			XMMATRIX result = XMMatrixScaling(inertia, inertia, inertia);
-			result.r[3] = XMVectorZero();
 
 			return result;
 		}
@@ -455,25 +472,27 @@ XMMATRIX GetCollidersDefaultInertiaTensor(std::vector<Collider>& colliders, floa
 	size_t totalNumVertices = 0;
 	for (size_t i = 0; i < colliders.size(); ++i)
 	{
-		Collider* collider = &colliders[i];
+		const Collider* collider = &colliders[i];
 		totalNumVertices += collider->convexHull.vertices->size();
 	}
 
 	float massPerVertex = mass / static_cast<float>(totalNumVertices);
 
-	XMMATRIX result;
+	XMMATRIX result = XMMatrixIdentity();
 	for (size_t i = 0; i < colliders.size(); ++i)
 	{
-		Collider* collider = &colliders[i];
+		const Collider* collider = &colliders[i];
 		assert(collider->type == ColliderType::CONVEX_HULL);
 
 		for (size_t j = 0; j < collider->convexHull.vertices->size(); ++j)
 		{
-			XMFLOAT3 v = collider->convexHull.vertices->at(j);
-			result.r[0] = XMVectorSet((v.y * v.y + v.z * v.z), v.x * v.y, v.x * v.z, 0.0f);
-			result.r[1] = XMVectorSet(v.x * v.y, (v.x * v.x + v.z * v.z), v.y * v.z, 0.0f);
-			result.r[2] = XMVectorSet(v.x * v.z, v.y * v.z, (v.x * v.x + v.y * v.y), 0.0f);
-			result.r[3] = XMVectorZero();
+			XMVECTOR v = collider->convexHull.vertices->at(j);
+			float vx = XMVectorGetX(v);
+			float vy = XMVectorGetY(v);
+			float vz = XMVectorGetZ(v);
+			result.r[0] = XMVectorSet((vy * vy + vz * vz), vx * vy, vx * vz, 0.0f);
+			result.r[1] = XMVectorSet(vx * vy, (vx * vx + vz * vz), vy * vz, 0.0f);
+			result.r[2] = XMVectorSet(vx * vz, vy * vz, (vx * vx + vy * vy), 0.0f);
 			result *= massPerVertex;
 		}
 	}
@@ -486,8 +505,8 @@ static float getConvexHullColliderBoundingSphereRadius(const Collider* collider)
 	float maxDistance = 0.0f;
 	for (size_t i = 0; i < collider->convexHull.vertices->size(); ++i)
 	{
-		XMFLOAT3 v = collider->convexHull.vertices->at(i);
-		float distance = XMVectorGetX(XMVector3Length(XMLoadFloat3(&v)));
+		XMVECTOR v = collider->convexHull.vertices->at(i);
+		float distance = XMVectorGetX(XMVector3Length(v));
 		if (maxDistance < distance)
 		{
 			maxDistance = distance;
@@ -506,9 +525,6 @@ static float getColliderBoundingSphereRadius(const Collider* collider)
 		break;
 	case ColliderType::SPHERE:
 		return collider->sphere.radius;
-		break;
-	default:
-		assert(false);
 		break;
 	}
 
@@ -548,6 +564,8 @@ static void getColliderContacts(Collider* collider1, Collider* collider2, std::v
 			penetration = minDistance - sqrtf(distanceSquared);
 			GetClippingContactManifold(collider1, collider2, normal, penetration, contacts);
 		}
+
+		return;
 	}
 
 	// TODO: need to GJK-EPA algorithm implementation for convex hull collision

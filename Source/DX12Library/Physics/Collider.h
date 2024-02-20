@@ -11,14 +11,14 @@ struct ColliderContact
 
 struct ColliderConvexHullFace
 {
-	std::vector<WORD> elements;
 	XMVECTOR normal;
+	std::vector<WORD> elements;
 };
 
 struct ColliderConvexHull
 {
-	std::vector<XMFLOAT3>* vertices;
-	std::vector<XMFLOAT3>* transformedVertices;
+	std::vector<XMVECTOR>* vertices;
+	std::vector<XMVECTOR>* transformedVertices;
 	std::vector<ColliderConvexHullFace>* faces;
 	std::vector<ColliderConvexHullFace>* transformedFaces;
 
@@ -49,11 +49,11 @@ struct Collider
 	};
 };
 
-Collider CreateColliderConvexHull(const std::vector<XMFLOAT3> vertices, const std::vector<WORD> indices);
+Collider CreateColliderConvexHull(const std::vector<Vertex> vertices, const std::vector<WORD> indices);
 Collider CreateColliderSphere(const float radius);
 
 void UpdateColliders(std::vector<Collider>& colliders, XMVECTOR translation, const XMVECTOR rotationQ);
 void DestroyColliders(std::vector<Collider>& colliders);
-XMMATRIX GetCollidersDefaultInertiaTensor(std::vector<Collider>& colliders, float mass);
+XMMATRIX GetCollidersDefaultInertiaTensor(const std::vector<Collider>& colliders, float mass);
 float GetCollidersBoundingSphereRadius(const std::vector<Collider>& colliders);
 std::vector<ColliderContact> GetCollidersContacts(std::vector<Collider>& colliders1, std::vector<Collider>& colliders2);

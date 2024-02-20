@@ -30,5 +30,7 @@ void GetClippingContactManifold(Collider* collider1, Collider* collider2, XMVECT
 	{
 		assert(collider1->type == ColliderType::CONVEX_HULL);
 		assert(collider2->type == ColliderType::CONVEX_HULL);
+
+		// TODO: convex-convex-contact-manifold
 	}
 }

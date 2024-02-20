@@ -1,13 +1,60 @@
 #include "Game/Game.h"
+#include "Game/RigidBodyGame.h"
 #include "Shapes/Cube.h"
 #include "Shapes/Sphere.h"
 #include "Shapes/Plane.h"
+#include "Shapes/RigidBodySphere.h"
+
+#define RIGIDBODY_SIMULATION
+//#undef RIGIDBODY_SIMULATION
 
 INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ INT nCmdShow)
 {
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
+#ifdef RIGIDBODY_SIMULATION
+	std::unique_ptr<RigidBodyGame> game = std::make_unique<RigidBodyGame>(PSZ_TITLE);
+	
+	constexpr float staticFrictionCoefficient = 0.5f;
+	constexpr float dynamicFrictionCoefficient = 0.4f;
+	constexpr float restitutionCoeftticient = 0.0f;
+	
+	XMVECTOR position = XMVectorZero();
+	XMVECTOR rotation = XMQuaternionIdentity();
+	XMVECTOR scale = XMVectorZero();
+
+	{
+		float sphereRadius = 1.0f;
+		position = XMVectorSet(0.0f, 20.0f, 0.0f, 0.0f);
+		scale = XMVectorSet(sphereRadius, sphereRadius, sphereRadius, 0.0f);
+		bool bIsFixed = false;
+
+		std::vector<Collider> colliders;
+		Collider colliderSphere = CreateColliderSphere(sphereRadius);
+		colliders.push_back(colliderSphere);
+
+		std::shared_ptr<DX12Library::RigidBodySphere> sphere = std::make_shared<DX12Library::RigidBodySphere>(position, rotation, scale, 1.0f,
+			colliders, staticFrictionCoefficient, dynamicFrictionCoefficient, restitutionCoeftticient, bIsFixed);
+		game->AddShape(sphere);
+	}
+	
+	{
+		float sphereRadius = 5.0f;
+		position = XMVectorSet(0.1f, 0.0f, 0.0f, 0.0f);
+		scale = XMVectorSet(sphereRadius, sphereRadius, sphereRadius, 0.0f);
+		bool bIsFixed = true;
+
+		std::vector<Collider> colliders;
+		Collider colliderSphere = CreateColliderSphere(sphereRadius);
+		colliders.push_back(colliderSphere);
+
+		std::shared_ptr<DX12Library::RigidBodySphere> sphere = std::make_shared<DX12Library::RigidBodySphere>(position, rotation, scale, 1.0f,
+			colliders, staticFrictionCoefficient, dynamicFrictionCoefficient, restitutionCoeftticient, bIsFixed);
+		game->AddShape(sphere);
+	}
+
+#else
     std::unique_ptr<Game> game = std::make_unique<Game>(PSZ_TITLE);
 
 	XMVECTOR position = XMVectorZero();
@@ -51,6 +98,7 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	position = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
 	std::shared_ptr<DX12Library::Plane> plane = std::make_shared<DX12Library::Plane>(position);
 	ThrowIfFailed(game->AddShape(L"Plane", plane));
+#endif // RIGIDBODY_SIMULATION
 	
 	ThrowIfFailed(game->Initialize(hInstance, nCmdShow));
 

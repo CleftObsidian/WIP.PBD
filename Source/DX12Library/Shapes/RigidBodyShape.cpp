@@ -2,13 +2,13 @@
 
 namespace DX12Library
 {
-	RigidBodyShape::RigidBodyShape(_In_ const XMVECTOR& position, _In_ const XMVECTOR& rotation, _In_ const XMVECTOR& scale, _In_ float mass, _In_ std::vector<Collider>& colliders,
-		_In_ float staticFrictionCoefficient, _In_ float dynamicFrictionCoefficient, _In_ float restitutionCoefficient, bool bIsFixed)
+	RigidBodyShape::RigidBodyShape(const XMVECTOR& position, const XMVECTOR& rotation, const XMVECTOR& scale, float mass, const std::vector<Collider>& colliders,
+		float staticFrictionCoefficient, float dynamicFrictionCoefficient, float restitutionCoefficient, bool bIsFixed)
 		: id()
 		, worldPosition(position)
 		, worldRotation(rotation)
 		, worldScale(scale)
-		, colliders(std::move(colliders))
+		, colliders(colliders)
 		, boundingSphereRadius()
 		, forces()
 		, inverseMass()

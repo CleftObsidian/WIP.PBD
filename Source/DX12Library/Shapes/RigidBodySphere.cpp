@@ -16,15 +16,15 @@ namespace DX12Library
 	const aiScene* RigidBodySphere::m_pScene = nullptr;
 	std::vector<BasicMeshEntry> RigidBodySphere::m_aMeshes;
 
-	RigidBodySphere::RigidBodySphere(_In_ const XMVECTOR& position, _In_ const XMVECTOR& rotation, _In_ const XMVECTOR& scale, _In_ float mass, _In_ std::vector<Collider>& colliders,
-		_In_ float staticFrictionCoefficient, _In_ float dynamicFrictionCoefficient, _In_ float restitutionCoefficient, bool bIsFixed)
+	RigidBodySphere::RigidBodySphere(const XMVECTOR& position, const XMVECTOR& rotation, const XMVECTOR& scale, float mass,	const std::vector<Collider>& colliders,
+		float staticFrictionCoefficient, float dynamicFrictionCoefficient, float restitutionCoefficient, bool bIsFixed)
 		: RigidBodyShape(position, rotation, scale, mass, colliders, staticFrictionCoefficient, dynamicFrictionCoefficient, restitutionCoefficient, bIsFixed)
 	{
 	}
 
 	void RigidBodySphere::Initialize(_In_ ID3D12Device* pDevice)
 	{
-		if (!m_pScene)
+		if (nullptr == m_pScene)
 		{
 			// Read the 3D model file
 			m_pScene = sm_pImporter->ReadFile(
@@ -71,8 +71,8 @@ namespace DX12Library
 						{
 							.position = XMFLOAT3(position.x, position.y, position.z),
 							.normal = XMFLOAT3(normal.x, normal.y, normal.z),
-							.color = XMFLOAT3(position.x, position.y, position.z)
-							//.color = XMFLOAT3(0.000000000f, 0.501960814f, 0.000000000f)	// green
+							//.color = XMFLOAT3(position.x, position.y, position.z)
+							.color = XMFLOAT3(0.000000000f, 0.501960814f, 0.000000000f)	// green
 						};
 
 						m_aVertices.push_back(vertex);

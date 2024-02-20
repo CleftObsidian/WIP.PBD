@@ -23,9 +23,9 @@ struct PositionalConstraint
 {
 	XMVECTOR r1_local;
 	XMVECTOR r2_local;
+	XMVECTOR distance;
 	float compliance;
 	float lambda;
-	XMVECTOR distance;
 };
 
 struct CollisionConstraint

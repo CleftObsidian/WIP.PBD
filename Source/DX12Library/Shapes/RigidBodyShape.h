@@ -17,8 +17,9 @@ namespace DX12Library
 	{
 	public:
 		RigidBodyShape(void) = delete;
-		RigidBodyShape(_In_ const XMVECTOR& position, _In_ const XMVECTOR& rotation, _In_ const XMVECTOR& scale, _In_ float mass, _In_ std::vector<Collider>& colliders,
-			_In_ float staticFrictionCoefficient, _In_ float dynamicFrictionCoefficient, _In_ float restitutionCoefficient, bool bIsFixed);
+		RigidBodyShape(const XMVECTOR& position, const XMVECTOR& rotation, const XMVECTOR& scale, float mass, const std::vector<Collider>& colliders,
+			float staticFrictionCoefficient, float dynamicFrictionCoefficient, float restitutionCoefficient, bool bIsFixed);
+		RigidBodyShape(const RigidBodyShape& other) = delete;
 		virtual ~RigidBodyShape();
 
 		virtual void Initialize(_In_ ID3D12Device* pDevice) = 0;

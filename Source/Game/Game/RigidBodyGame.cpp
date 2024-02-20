@@ -1,4 +1,5 @@
 #include "Game/RigidBodyGame.h"
+#include "Physics/PBD.h"
 #include "Shapes/RigidBodySphere.h"
 
 RigidBodyGame::RigidBodyGame(_In_ PCWSTR pszRigidBodyGameName)
@@ -263,6 +264,8 @@ void RigidBodyGame::InitDevice(void)
 			.SampleDesc = {.Count = 1 }
 		};
 
+		//psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
+
 		ThrowIfFailed(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
 	}
 
@@ -379,28 +382,30 @@ void RigidBodyGame::HandleInput(_In_ const DirectionsInput& directions, _In_ con
 void RigidBodyGame::Update(_In_ FLOAT deltaTime)
 {
 	// spawn the sphere
-	if (true)
+	if (false)
 	{
 		static size_t counting = 0;
-		const XMVECTOR position = XMVectorSet(static_cast<float>(rand() % 10) - 5.0f, static_cast<float>(rand() % 10) + 20.0f, static_cast<float>(rand() % 10) - 5.0f, 0.0f);
-		if (1 < counting)
+		
+		if (0 < counting)
 		{
-			std::shared_ptr<DX12Library::RigidBodyShape> shape = std::make_shared<DX12Library::RigidBodySphere>(position);
-			shape->Initialize(m_device.Get());
+			constexpr float staticFrictionCoefficient = 0.5f;
+			constexpr float dynamicFrictionCoefficient = 0.4f;
+			constexpr float restitutionCoeftticient = 0.0f;
 
-			this->AddShape(shape);
+			float sphereRadius = 1.0f;
+			const XMVECTOR position = XMVectorSet(static_cast<float>(rand() % 10) - 5.0f, static_cast<float>(rand() % 10) + 20.0f, static_cast<float>(rand() % 10) - 5.0f, 0.0f);
+			const XMVECTOR rotation = XMQuaternionIdentity();
+			const XMVECTOR scale = XMVectorSet(sphereRadius, sphereRadius, sphereRadius, 0.0f);
+			bool bIsFixed = false;
 
-			// Signal and increment the fence value.
-			const UINT64 fence = m_fenceValue;
-			ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), fence));
-			m_fenceValue++;
+			std::vector<Collider> colliders;
+			Collider colliderSphere = CreateColliderSphere(sphereRadius);
+			colliders.push_back(colliderSphere);
 
-			// Wait until the previous frame is finished.
-			if (m_fence->GetCompletedValue() < fence)
-			{
-				ThrowIfFailed(m_fence->SetEventOnCompletion(fence, m_fenceEvent));
-				WaitForSingleObject(m_fenceEvent, INFINITE);
-			}
+			std::shared_ptr<DX12Library::RigidBodySphere> sphere = std::make_shared<DX12Library::RigidBodySphere>(position, rotation, scale, 1.0f,
+				colliders, staticFrictionCoefficient, dynamicFrictionCoefficient, restitutionCoeftticient, bIsFixed);
+
+			this->AddShape(sphere);
 
 			counting = 0;
 		}
@@ -413,14 +418,7 @@ void RigidBodyGame::Update(_In_ FLOAT deltaTime)
 		std::unordered_map<size_t, std::shared_ptr<DX12Library::RigidBodyShape>>::iterator shape;
 		for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
 		{
-			XMVECTOR s;
-			XMVECTOR r;
-			XMVECTOR t;
-			XMMatrixDecompose(&s, &r, &t, shape->second->GetWorldMatrix());
-
-			float shapeHeight = shape->second->GetVertices()[0].position.y;
-
-			if (XMVectorGetY(t) < -50.0f || shapeHeight < -50.0f)
+			if (XMVectorGetY(shape->second->worldPosition) < -50.0f)
 			{
 				eraseShapeID = shape->first;
 				break;
@@ -434,19 +432,44 @@ void RigidBodyGame::Update(_In_ FLOAT deltaTime)
 		}
 	}
 
-	LARGE_INTEGER startSimTime;
-	LARGE_INTEGER endSimTime;
-	LARGE_INTEGER frequency;
-	QueryPerformanceCounter(&startSimTime);
+	// Add force
+	{
+		std::unordered_map<size_t, std::shared_ptr<DX12Library::RigidBodyShape>>::iterator shape;
+		for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
+		{
+			static XMVECTOR gravityPosition = XMVectorZero();
+			shape->second->AddForce(gravityPosition, GRAVITY / shape->second->inverseMass, false);
+		}
+	}
 
-	QueryPerformanceCounter(&endSimTime);
-	QueryPerformanceFrequency(&frequency);
+	// PBD simulation
+	{
+		LARGE_INTEGER startSimTime;
+		LARGE_INTEGER endSimTime;
+		LARGE_INTEGER frequency;
+		QueryPerformanceCounter(&startSimTime);
 
-	OutputDebugString(L"Number of shapes: ");
-	OutputDebugString(std::to_wstring(m_shapes.size()).c_str());
-	OutputDebugString(L"\nSimulation Step Time: ");
-	OutputDebugString(std::to_wstring(static_cast<float>(endSimTime.QuadPart - startSimTime.QuadPart) * 1000.0f / static_cast<float>(frequency.QuadPart)).c_str());
-	OutputDebugString(L"\n\n");
+		SimulatePBD(deltaTime, m_shapes, 1, 1, true);
+
+		QueryPerformanceCounter(&endSimTime);
+		QueryPerformanceFrequency(&frequency);
+
+		OutputDebugString(L"Number of shapes: ");
+		OutputDebugString(std::to_wstring(m_shapes.size()).c_str());
+		OutputDebugString(L"\nSimulation Step Time: ");
+		OutputDebugString(std::to_wstring(static_cast<float>(endSimTime.QuadPart - startSimTime.QuadPart) * 1000.0f / static_cast<float>(frequency.QuadPart)).c_str());
+		OutputDebugString(L"\n\n");
+	}
+
+	// Clear force
+	{
+		std::unordered_map<size_t, std::shared_ptr<DX12Library::RigidBodyShape>>::iterator shape;
+		for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
+		{
+			static XMVECTOR gravityPosition = XMVectorZero();
+			shape->second->forces.clear();
+		}
+	}
 
 	m_camera.Update(deltaTime);
 

@@ -9,9 +9,6 @@ XMVECTOR support_point(Collider* collider, XMVECTOR direction)
 		break;
 	case ColliderType::CONVEX_HULL:
 		break;
-	default:
-		assert(false);
-		break;
 	}
 
 	assert(false);

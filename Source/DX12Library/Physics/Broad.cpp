@@ -9,7 +9,9 @@ void GetBroadCollisionPairs(std::unordered_map<size_t, std::shared_ptr<DX12Libra
 	for (shape = shapes.begin(); shape != shapes.end(); ++shape)
 	{
 		std::shared_ptr<DX12Library::RigidBodyShape> s1 = shape->second;
-		for (otherShape++ = shape; otherShape != shapes.end(); ++otherShape)
+		otherShape = shape;
+		++otherShape;
+		for (; otherShape != shapes.end(); ++otherShape)
 		{
 			std::shared_ptr<DX12Library::RigidBodyShape> s2 = otherShape->second;
 

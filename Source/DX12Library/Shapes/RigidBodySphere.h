@@ -16,8 +16,9 @@ namespace DX12Library
 	{
 	public:
 		RigidBodySphere(void) = delete;
-		RigidBodySphere(_In_ const XMVECTOR& position, _In_ const XMVECTOR& rotation, _In_ const XMVECTOR& scale, _In_ float mass, _In_ std::vector<Collider>& colliders,
-			_In_ float staticFrictionCoefficient, _In_ float dynamicFrictionCoefficient, _In_ float restitutionCoefficient, bool bIsFixed);
+		RigidBodySphere(const XMVECTOR& position, const XMVECTOR& rotation, const XMVECTOR& scale, float mass, const std::vector<Collider>& colliders,
+			float staticFrictionCoefficient, float dynamicFrictionCoefficient, float restitutionCoefficient, bool bIsFixed);
+		RigidBodySphere(const RigidBodySphere& other) = delete;
 		virtual ~RigidBodySphere() = default;
 
 		virtual void Initialize(_In_ ID3D12Device* pDevice);
@@ -31,7 +32,7 @@ namespace DX12Library
 		virtual UINT GetNumVertices(void) const;
 		virtual UINT GetNumIndices(void) const;
 
-	public:
+	private:
 		static ComPtr<ID3D12Resource> m_vertexBuffer;
 		static D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView;
 		static ComPtr<ID3D12Resource> m_indexBuffer;
