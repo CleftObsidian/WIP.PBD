@@ -264,7 +264,7 @@ void RigidBodyGame::InitDevice(void)
 			.SampleDesc = {.Count = 1 }
 		};
 
-		//psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
+		psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
 
 		ThrowIfFailed(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
 	}
@@ -449,7 +449,8 @@ void RigidBodyGame::Update(_In_ FLOAT deltaTime)
 		LARGE_INTEGER frequency;
 		QueryPerformanceCounter(&startSimTime);
 
-		SimulatePBD(deltaTime, m_shapes, 1, 1, true);
+		constexpr float dt = 1.0f / 60.0f;
+		SimulatePBD(dt, m_shapes, 20, 1, true);
 
 		QueryPerformanceCounter(&endSimTime);
 		QueryPerformanceFrequency(&frequency);

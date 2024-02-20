@@ -18,7 +18,7 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	
 	constexpr float staticFrictionCoefficient = 0.5f;
 	constexpr float dynamicFrictionCoefficient = 0.4f;
-	constexpr float restitutionCoeftticient = 0.0f;
+	constexpr float restitutionCoeftticient = 0.1f;
 	
 	XMVECTOR position = XMVectorZero();
 	XMVECTOR rotation = XMQuaternionIdentity();
