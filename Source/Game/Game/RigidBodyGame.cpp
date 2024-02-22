@@ -382,15 +382,15 @@ void RigidBodyGame::HandleInput(_In_ const DirectionsInput& directions, _In_ con
 void RigidBodyGame::Update(_In_ FLOAT deltaTime)
 {
 	// spawn the sphere
-	if (false)
+	if (true)
 	{
 		static size_t counting = 0;
 		
-		if (0 < counting)
+		if (1 < counting)
 		{
 			constexpr float staticFrictionCoefficient = 0.5f;
 			constexpr float dynamicFrictionCoefficient = 0.4f;
-			constexpr float restitutionCoeftticient = 0.0f;
+			constexpr float restitutionCoeftticient = 0.5f;
 
 			float sphereRadius = 1.0f;
 			const XMVECTOR position = XMVectorSet(static_cast<float>(rand() % 10) - 5.0f, static_cast<float>(rand() % 10) + 20.0f, static_cast<float>(rand() % 10) - 5.0f, 0.0f);
@@ -449,8 +449,8 @@ void RigidBodyGame::Update(_In_ FLOAT deltaTime)
 		LARGE_INTEGER frequency;
 		QueryPerformanceCounter(&startSimTime);
 
-		constexpr float dt = 1.0f / 60.0f;
-		SimulatePBD(dt, m_shapes, 20, 1, true);
+		constexpr float deltaTime = 1.0f / 60.0f;
+		SimulatePBD(deltaTime, m_shapes, 20, 1, true);
 
 		QueryPerformanceCounter(&endSimTime);
 		QueryPerformanceFrequency(&frequency);
@@ -467,7 +467,6 @@ void RigidBodyGame::Update(_In_ FLOAT deltaTime)
 		std::unordered_map<size_t, std::shared_ptr<DX12Library::RigidBodyShape>>::iterator shape;
 		for (shape = m_shapes.begin(); shape != m_shapes.end(); ++shape)
 		{
-			static XMVECTOR gravityPosition = XMVectorZero();
 			shape->second->forces.clear();
 		}
 	}

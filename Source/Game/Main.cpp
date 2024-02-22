@@ -16,9 +16,9 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 #ifdef RIGIDBODY_SIMULATION
 	std::unique_ptr<RigidBodyGame> game = std::make_unique<RigidBodyGame>(PSZ_TITLE);
 	
-	constexpr float staticFrictionCoefficient = 0.5f;
-	constexpr float dynamicFrictionCoefficient = 0.4f;
-	constexpr float restitutionCoeftticient = 0.1f;
+	constexpr float staticFrictionCoefficient = 0.25f;
+	constexpr float dynamicFrictionCoefficient = 0.2f;
+	constexpr float restitutionCoeftticient = 0.5f;
 	
 	XMVECTOR position = XMVectorZero();
 	XMVECTOR rotation = XMQuaternionIdentity();
@@ -40,7 +40,7 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	}
 	
 	{
-		float sphereRadius = 5.0f;
+		float sphereRadius = 8.0f;
 		position = XMVectorSet(0.1f, 0.0f, 0.0f, 0.0f);
 		scale = XMVectorSet(sphereRadius, sphereRadius, sphereRadius, 0.0f);
 		bool bIsFixed = true;

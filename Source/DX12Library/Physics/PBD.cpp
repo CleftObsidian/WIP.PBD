@@ -294,7 +294,7 @@ static void simulatePBDWithConstraints(float dt, std::unordered_map<size_t, std:
 				// Coulomb's dynamic friction
 				const float dynamicFrictionCoefficient = (s1->dynamicFrictionCoefficient + s2->dynamicFrictionCoefficient) * 0.5f;
 				float fn = lambda_n / h;
-				float fact = fminf(dynamicFrictionCoefficient * std::_Float_abs(fn), XMVectorGetX(XMVector3Length(vt)));
+				float fact = fminf(dynamicFrictionCoefficient * fabsf(fn), XMVectorGetX(XMVector3Length(vt)));
 				delta_v += -fact * XMVector3Normalize(vt);
 
 				// Restitution
@@ -313,6 +313,8 @@ static void simulatePBDWithConstraints(float dt, std::unordered_map<size_t, std:
 					XMVector3Transform(XMVector3Cross(pcpd.r1_world, n), pcpd.s1_inverseInertiaTensor)));
 				float _w2 = s2->inverseMass + XMVectorGetX(XMVector3Dot(XMVector3Cross(pcpd.r2_world, n),
 					XMVector3Transform(XMVector3Cross(pcpd.r2_world, n), pcpd.s2_inverseInertiaTensor)));
+				//float _w1 = s1->inverseMass;
+				//float _w2 = s2->inverseMass;
 				XMVECTOR p = (1.0f / (_w1 + _w2)) * delta_v;
 
 				if (false == s1->bFixed)

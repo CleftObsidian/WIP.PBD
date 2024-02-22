@@ -15,9 +15,9 @@ void GetBroadCollisionPairs(std::unordered_map<size_t, std::shared_ptr<DX12Libra
 		{
 			std::shared_ptr<DX12Library::RigidBodyShape> s2 = otherShape->second;
 
-			float shapeDistance = XMVectorGetX(XMVector3Length(s1->worldPosition - s2->worldPosition));
+			float shapeDistanceSq = XMVectorGetX(XMVector3LengthSq(s1->worldPosition - s2->worldPosition));
 			float maxDistanceForCollision = s1->boundingSphereRadius + s2->boundingSphereRadius + 0.1f;
-			if (shapeDistance <= maxDistanceForCollision)
+			if (shapeDistanceSq <= maxDistanceForCollision * maxDistanceForCollision)
 			{
 				pair.s1_id = shape->first;
 				pair.s2_id = otherShape->first;

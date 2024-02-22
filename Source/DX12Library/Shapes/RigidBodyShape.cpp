@@ -65,9 +65,9 @@ namespace DX12Library
 	const XMMATRIX RigidBodyShape::GetWorldMatrix(void) const
 	{
 		XMMATRIX worldTransform = XMMatrixIdentity();
-		worldTransform *= XMMatrixTranslationFromVector(worldPosition);
-		worldTransform *= XMMatrixRotationQuaternion(worldRotation);
 		worldTransform *= XMMatrixScalingFromVector(worldScale);
+		worldTransform *= XMMatrixRotationQuaternion(worldRotation);
+		worldTransform *= XMMatrixTranslationFromVector(worldPosition);		
 
 		return worldTransform;
 	}
