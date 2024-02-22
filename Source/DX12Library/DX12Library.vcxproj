@@ -114,6 +114,8 @@ xcopy /y /d "$(SolutionDir)..\External\Assimp\Binary\x64\Release\assimp-vc142-mt
     <ClCompile Include="Physics\Broad.cpp" />
     <ClCompile Include="Physics\Clipping.cpp" />
     <ClCompile Include="Physics\Collider.cpp" />
+    <ClCompile Include="Physics\EPA.cpp" />
+    <ClCompile Include="Physics\GJK.cpp" />
     <ClCompile Include="Physics\PBD.cpp" />
     <ClCompile Include="Physics\PBDBaseConstraint.cpp" />
     <ClCompile Include="Physics\Support.cpp" />
@@ -136,6 +138,8 @@ xcopy /y /d "$(SolutionDir)..\External\Assimp\Binary\x64\Release\assimp-vc142-mt
     <ClInclude Include="Physics\Broad.h" />
     <ClInclude Include="Physics\Clipping.h" />
     <ClInclude Include="Physics\Collider.h" />
+    <ClInclude Include="Physics\EPA.h" />
+    <ClInclude Include="Physics\GJK.h" />
     <ClInclude Include="Physics\PBD.h" />
     <ClInclude Include="Physics\PBDBaseConstraint.h" />
     <ClInclude Include="Physics\Support.h" />
