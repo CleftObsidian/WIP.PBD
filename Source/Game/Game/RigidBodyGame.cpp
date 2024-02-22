@@ -1,6 +1,7 @@
 #include "Game/RigidBodyGame.h"
 #include "Physics/PBD.h"
 #include "Shapes/RigidBodySphere.h"
+#include <random>
 
 RigidBodyGame::RigidBodyGame(_In_ PCWSTR pszRigidBodyGameName)
 	: GameSample(pszRigidBodyGameName)
@@ -388,19 +389,22 @@ void RigidBodyGame::Update(_In_ FLOAT deltaTime)
 		
 		if (1 < counting)
 		{
-			constexpr float staticFrictionCoefficient = 0.5f;
-			constexpr float dynamicFrictionCoefficient = 0.4f;
-			constexpr float restitutionCoeftticient = 0.5f;
+			constexpr float staticFrictionCoefficient = 0.74f;
+			constexpr float dynamicFrictionCoefficient = 0.57f;
+			constexpr float restitutionCoeftticient = 0.4f;
 
-			float sphereRadius = 1.0f;
-			const XMVECTOR position = XMVectorSet(static_cast<float>(rand() % 10) - 5.0f, static_cast<float>(rand() % 10) + 20.0f, static_cast<float>(rand() % 10) - 5.0f, 0.0f);
+			float sphereRadius = 0.5f;
+			const XMVECTOR position = XMVectorSet(static_cast<float>(rand() % 10) - 5.0f, static_cast<float>(rand() % 10) + 30.0f, static_cast<float>(rand() % 10) - 5.0f, 0.0f);
 			const XMVECTOR rotation = XMQuaternionIdentity();
 			const XMVECTOR scale = XMVectorSet(sphereRadius, sphereRadius, sphereRadius, 0.0f);
 			bool bIsFixed = false;
 
-			std::vector<Collider> colliders;
-			Collider colliderSphere = CreateColliderSphere(sphereRadius);
-			colliders.push_back(colliderSphere);
+			static std::vector<Collider> colliders;
+			static Collider colliderSphere = CreateColliderSphere(sphereRadius);
+			if (true == colliders.empty())
+			{
+				colliders.push_back(colliderSphere);
+			}
 
 			std::shared_ptr<DX12Library::RigidBodySphere> sphere = std::make_shared<DX12Library::RigidBodySphere>(position, rotation, scale, 1.0f,
 				colliders, staticFrictionCoefficient, dynamicFrictionCoefficient, restitutionCoeftticient, bIsFixed);
@@ -449,8 +453,7 @@ void RigidBodyGame::Update(_In_ FLOAT deltaTime)
 		LARGE_INTEGER frequency;
 		QueryPerformanceCounter(&startSimTime);
 
-		constexpr float deltaTime = 1.0f / 60.0f;
-		SimulatePBD(deltaTime, m_shapes, 20, 1, true);
+		SimulatePBD(TIMESTEP, m_shapes, SUBSTEPS, SOLVER_ITERATION, true);
 
 		QueryPerformanceCounter(&endSimTime);
 		QueryPerformanceFrequency(&frequency);
@@ -556,9 +559,9 @@ void RigidBodyGame::Render(void)
 
 size_t RigidBodyGame::AddShape(std::shared_ptr<DX12Library::RigidBodyShape> shape)
 {
-	size_t id = m_shapes.size();
+	static size_t id = 0;
 	shape->id = id;
 	m_shapes.emplace(id, shape);
 
-	return id;
+	return id++;
 }

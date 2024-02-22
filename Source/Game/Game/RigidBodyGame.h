@@ -36,7 +36,6 @@ private:
 	ComPtr<ID3D12Resource> m_depthBuffer;
 	ConstantBuffer m_constantBuffer;
 	std::unordered_map<size_t, std::shared_ptr<DX12Library::RigidBodyShape>> m_shapes;
-	std::vector<std::pair<size_t, size_t>> m_collisionPairs;
 
 	// Synchronization objects.
 	UINT m_frameIndex = 0;

@@ -11,8 +11,8 @@ struct ColliderContact
 
 struct ColliderConvexHullFace
 {
-	XMVECTOR normal;
 	std::vector<WORD> elements;
+	XMVECTOR normal;
 };
 
 struct ColliderConvexHull

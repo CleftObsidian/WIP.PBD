@@ -5,7 +5,7 @@ void GetClippingContactManifold(Collider* collider1, Collider* collider2, XMVECT
 {
 	if (collider1->type == ColliderType::SPHERE)
 	{
-		XMVECTOR sphereCollisionPoint = support_point(collider1, normal);
+		XMVECTOR sphereCollisionPoint = supportPoint(collider1, normal);
 
 		ColliderContact contact;
 		contact.collision_point1 = sphereCollisionPoint;
@@ -17,7 +17,7 @@ void GetClippingContactManifold(Collider* collider1, Collider* collider2, XMVECT
 	else if (collider2->type == ColliderType::SPHERE)
 	{
 		XMVECTOR inverseNormal = -normal;
-		XMVECTOR sphereCollisionPoint = support_point(collider2, inverseNormal);
+		XMVECTOR sphereCollisionPoint = supportPoint(collider2, inverseNormal);
 
 		ColliderContact contact;
 		contact.collision_point1 = sphereCollisionPoint + penetration * normal;

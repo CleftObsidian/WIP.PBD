@@ -1,6 +1,6 @@
 #include "PBDBaseConstraint.h"
 
-void CalculatePositionalConstraintPreprcessedData(std::shared_ptr<DX12Library::RigidBodyShape> s1, std::shared_ptr<DX12Library::RigidBodyShape> s2, XMVECTOR r1_local, XMVECTOR r2_local, PositionalConstraintPreprocessedData* pcpd)
+void CalculatePositionalConstraintPreprocessedData(std::shared_ptr<DX12Library::RigidBodyShape> s1, std::shared_ptr<DX12Library::RigidBodyShape> s2, XMVECTOR r1_local, XMVECTOR r2_local, PositionalConstraintPreprocessedData* pcpd)
 {
 	pcpd->s1 = s1;
 	pcpd->s2 = s2;

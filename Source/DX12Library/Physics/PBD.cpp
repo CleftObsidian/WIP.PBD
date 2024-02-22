@@ -60,7 +60,7 @@ static void solvePositionalConstraint(Constraint* constraint, float h, std::unor
 	XMVECTOR delta_x = attachmentDistance - constraint->positional_constraint.distance;
 
 	PositionalConstraintPreprocessedData pcpd;
-	CalculatePositionalConstraintPreprcessedData(s1, s2, constraint->positional_constraint.r1_local, constraint->positional_constraint.r2_local, &pcpd);
+	CalculatePositionalConstraintPreprocessedData(s1, s2, constraint->positional_constraint.r1_local, constraint->positional_constraint.r2_local, &pcpd);
 	float delta_lambda = GetPositionalConstraintDeltaLambda(&pcpd, h, constraint->positional_constraint.compliance, constraint->positional_constraint.lambda, delta_x);
 	ApplyPositionalConstraint(&pcpd, delta_lambda, delta_x);
 	constraint->positional_constraint.lambda += delta_lambda;
@@ -74,7 +74,7 @@ static void solveCollisionConstraint(Constraint* constraint, float h, std::unord
 	std::shared_ptr<DX12Library::RigidBodyShape> s2 = shapes[constraint->s2_id];
 
 	PositionalConstraintPreprocessedData pcpd;
-	CalculatePositionalConstraintPreprcessedData(s1, s2, constraint->collision_constraint.r1_local, constraint->collision_constraint.r2_local, &pcpd);
+	CalculatePositionalConstraintPreprocessedData(s1, s2, constraint->collision_constraint.r1_local, constraint->collision_constraint.r2_local, &pcpd);
 
 	// Calculate p1 and p2 in order to calculate d
 	XMVECTOR p1 = s1->worldPosition + pcpd.r1_world;
@@ -89,7 +89,7 @@ static void solveCollisionConstraint(Constraint* constraint, float h, std::unord
 		constraint->collision_constraint.lambda_n += delta_lambda;
 
 		// Recalculate shape pair preprocessed data and p1, p2
-		CalculatePositionalConstraintPreprcessedData(s1, s2, constraint->collision_constraint.r1_local, constraint->collision_constraint.r2_local, &pcpd);
+		CalculatePositionalConstraintPreprocessedData(s1, s2, constraint->collision_constraint.r1_local, constraint->collision_constraint.r2_local, &pcpd);
 
 		p1 = s1->worldPosition + pcpd.r1_world;
 		p2 = s2->worldPosition + pcpd.r2_world;
@@ -276,7 +276,7 @@ static void simulatePBDWithConstraints(float dt, std::unordered_map<size_t, std:
 				float lambda_n = constraint->collision_constraint.lambda_n;
 
 				PositionalConstraintPreprocessedData pcpd;
-				CalculatePositionalConstraintPreprcessedData(s1, s2, constraint->collision_constraint.r1_local, constraint->collision_constraint.r2_local, &pcpd);
+				CalculatePositionalConstraintPreprocessedData(s1, s2, constraint->collision_constraint.r1_local, constraint->collision_constraint.r2_local, &pcpd);
 
 				XMVECTOR v1 = s1->linearVelocity;
 				XMVECTOR w1 = s1->angularVelocity;

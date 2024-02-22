@@ -2,4 +2,5 @@
 
 #include "Collider.h"
 
-XMVECTOR support_point(Collider* collider, XMVECTOR direction);
+XMVECTOR supportPoint(Collider* collider, XMVECTOR direction);
+XMVECTOR supportPointOfMinkowskiDifference(Collider* collider1, Collider* collider2, XMVECTOR direction);

@@ -1,6 +1,7 @@
 #include "Collider.h"
 #include "Clipping.h"
 #include <unordered_map>
+#include "GJK.h"
 
 template<>
 struct std::hash<XMVECTOR>
@@ -569,6 +570,17 @@ static void getColliderContacts(Collider* collider1, Collider* collider2, std::v
 	}
 
 	// TODO: need to GJK-EPA algorithm implementation for convex hull collision
+
+	GJKSimplex simplex;
+
+	// GJK to check collision
+	if (true == GJKCollides(collider1, collider2, &simplex))
+	{
+		// Collision detected
+
+		// EPA to get collision normal
+
+	}
 }
 
 std::vector<ColliderContact> GetCollidersContacts(std::vector<Collider>& colliders1, std::vector<Collider>& colliders2)

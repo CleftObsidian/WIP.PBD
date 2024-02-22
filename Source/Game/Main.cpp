@@ -16,9 +16,9 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 #ifdef RIGIDBODY_SIMULATION
 	std::unique_ptr<RigidBodyGame> game = std::make_unique<RigidBodyGame>(PSZ_TITLE);
 	
-	constexpr float staticFrictionCoefficient = 0.25f;
-	constexpr float dynamicFrictionCoefficient = 0.2f;
-	constexpr float restitutionCoeftticient = 0.5f;
+	constexpr float staticFrictionCoefficient = 0.74f;
+	constexpr float dynamicFrictionCoefficient = 0.57f;
+	constexpr float restitutionCoeftticient = 0.4f;
 	
 	XMVECTOR position = XMVectorZero();
 	XMVECTOR rotation = XMQuaternionIdentity();
@@ -41,7 +41,7 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	
 	{
 		float sphereRadius = 8.0f;
-		position = XMVectorSet(0.1f, 0.0f, 0.0f, 0.0f);
+		position = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
 		scale = XMVectorSet(sphereRadius, sphereRadius, sphereRadius, 0.0f);
 		bool bIsFixed = true;
 
@@ -49,9 +49,59 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 		Collider colliderSphere = CreateColliderSphere(sphereRadius);
 		colliders.push_back(colliderSphere);
 
-		std::shared_ptr<DX12Library::RigidBodySphere> sphere = std::make_shared<DX12Library::RigidBodySphere>(position, rotation, scale, 1.0f,
-			colliders, staticFrictionCoefficient, dynamicFrictionCoefficient, restitutionCoeftticient, bIsFixed);
-		game->AddShape(sphere);
+		{
+			std::shared_ptr<DX12Library::RigidBodySphere> sphere = std::make_shared<DX12Library::RigidBodySphere>(position, rotation, scale, 1.0f,
+				colliders, staticFrictionCoefficient, dynamicFrictionCoefficient, restitutionCoeftticient, bIsFixed);
+			game->AddShape(sphere);
+		}
+		position = XMVectorSet(-12.0f, 0.0f, -12.0f, 0.0f);
+		{
+			std::shared_ptr<DX12Library::RigidBodySphere> sphere = std::make_shared<DX12Library::RigidBodySphere>(position, rotation, scale, 1.0f,
+				colliders, staticFrictionCoefficient, dynamicFrictionCoefficient, restitutionCoeftticient, bIsFixed);
+			game->AddShape(sphere);
+		}
+		position = XMVectorSet(0.0f, 0.0f, -12.0f, 0.0f);
+		{
+			std::shared_ptr<DX12Library::RigidBodySphere> sphere = std::make_shared<DX12Library::RigidBodySphere>(position, rotation, scale, 1.0f,
+				colliders, staticFrictionCoefficient, dynamicFrictionCoefficient, restitutionCoeftticient, bIsFixed);
+			game->AddShape(sphere);
+		}
+		position = XMVectorSet(12.0f, 0.0f, -12.0f, 0.0f);
+		{
+			std::shared_ptr<DX12Library::RigidBodySphere> sphere = std::make_shared<DX12Library::RigidBodySphere>(position, rotation, scale, 1.0f,
+				colliders, staticFrictionCoefficient, dynamicFrictionCoefficient, restitutionCoeftticient, bIsFixed);
+			game->AddShape(sphere);
+		}
+		position = XMVectorSet(-12.0f, 0.0f, 0.0f, 0.0f);
+		{
+			std::shared_ptr<DX12Library::RigidBodySphere> sphere = std::make_shared<DX12Library::RigidBodySphere>(position, rotation, scale, 1.0f,
+				colliders, staticFrictionCoefficient, dynamicFrictionCoefficient, restitutionCoeftticient, bIsFixed);
+			game->AddShape(sphere);
+		}
+		position = XMVectorSet(12.0f, 0.0f, 0.0f, 0.0f);
+		{
+			std::shared_ptr<DX12Library::RigidBodySphere> sphere = std::make_shared<DX12Library::RigidBodySphere>(position, rotation, scale, 1.0f,
+				colliders, staticFrictionCoefficient, dynamicFrictionCoefficient, restitutionCoeftticient, bIsFixed);
+			game->AddShape(sphere);
+		}
+		position = XMVectorSet(-12.0f, 0.0f, 12.0f, 0.0f);
+		{
+			std::shared_ptr<DX12Library::RigidBodySphere> sphere = std::make_shared<DX12Library::RigidBodySphere>(position, rotation, scale, 1.0f,
+				colliders, staticFrictionCoefficient, dynamicFrictionCoefficient, restitutionCoeftticient, bIsFixed);
+			game->AddShape(sphere);
+		}
+		position = XMVectorSet(0.0f, 0.0f, 12.0f, 0.0f);
+		{
+			std::shared_ptr<DX12Library::RigidBodySphere> sphere = std::make_shared<DX12Library::RigidBodySphere>(position, rotation, scale, 1.0f,
+				colliders, staticFrictionCoefficient, dynamicFrictionCoefficient, restitutionCoeftticient, bIsFixed);
+			game->AddShape(sphere);
+		}
+		position = XMVectorSet(12.0f, 0.0f, 12.0f, 0.0f);
+		{
+			std::shared_ptr<DX12Library::RigidBodySphere> sphere = std::make_shared<DX12Library::RigidBodySphere>(position, rotation, scale, 1.0f,
+				colliders, staticFrictionCoefficient, dynamicFrictionCoefficient, restitutionCoeftticient, bIsFixed);
+			game->AddShape(sphere);
+		}
 	}
 
 #else
