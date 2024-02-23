@@ -27,10 +27,12 @@ namespace DX12Library
 		virtual D3D12_VERTEX_BUFFER_VIEW& GetVertexBufferView(void);
 		virtual D3D12_INDEX_BUFFER_VIEW& GetIndexBufferView(void);
 
-		virtual Vertex* GetVertices(void);
-		virtual const WORD* GetIndices(void) const;
-		virtual UINT GetNumVertices(void) const;
-		virtual UINT GetNumIndices(void) const;
+		static const Vertex* GetVertices(void);
+		static const WORD* GetIndices(void);
+		static UINT GetNumVertices(void);
+		static UINT GetNumIndices(void);
+
+		virtual UINT GetNumIndicesForRendering(void) const;
 
 	private:
 		static ComPtr<ID3D12Resource> m_vertexBuffer;
@@ -40,8 +42,8 @@ namespace DX12Library
 
 		static std::unique_ptr<Assimp::Importer> sm_pImporter;
 
-		static std::vector<Vertex> m_aVertices;
-		static std::vector<WORD> m_aIndices;
+		static std::vector<Vertex> sm_aVertices;
+		static std::vector<WORD> sm_aIndices;
 
 		static const aiScene* m_pScene;
 		static std::vector<BasicMeshEntry> m_aMeshes;

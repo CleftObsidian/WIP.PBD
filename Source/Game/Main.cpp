@@ -4,6 +4,7 @@
 #include "Shapes/Sphere.h"
 #include "Shapes/Plane.h"
 #include "Shapes/RigidBodySphere.h"
+#include "Shapes/RigidBodyCube.h"
 
 #define RIGIDBODY_SIMULATION
 //#undef RIGIDBODY_SIMULATION
@@ -39,6 +40,30 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 		game->AddShape(sphere);
 	}
 	
+	{
+		position = XMVectorSet(0.0f, 30.0f, 0.0f, 0.0f);
+		scale = XMVectorSet(1.0f, 1.0f, 1.0f, 0.0f);
+		bool bIsFixed = false;
+		
+		std::vector<Collider> colliders;
+		std::vector<Vertex> vertices;
+		std::vector<WORD> indices;
+		for (size_t i = 0; i < DX12Library::RigidBodyCube::GetNumVertices(); ++i)
+		{
+			vertices.push_back(DX12Library::RigidBodyCube::GetVertices()[i]);
+		}
+		for (size_t i = 0; i < DX12Library::RigidBodyCube::GetNumIndices(); ++i)
+		{
+			indices.push_back(DX12Library::RigidBodyCube::GetIndices()[i]);
+		}
+		Collider colliderCube = CreateColliderConvexHull(vertices, indices);
+		colliders.push_back(colliderCube);
+
+		std::shared_ptr<DX12Library::RigidBodyCube> cube = std::make_shared<DX12Library::RigidBodyCube>(position, rotation, scale, 1.0f,
+			colliders, staticFrictionCoefficient, dynamicFrictionCoefficient, restitutionCoeftticient, bIsFixed);
+		game->AddShape(cube);
+	}
+
 	{
 		float sphereRadius = 8.0f;
 		position = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);

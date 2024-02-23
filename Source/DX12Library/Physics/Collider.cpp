@@ -2,6 +2,7 @@
 #include "Clipping.h"
 #include <unordered_map>
 #include "GJK.h"
+#include "EPA.h"
 
 template<>
 struct std::hash<XMVECTOR>
@@ -97,18 +98,18 @@ static void collectFacesPlanarTo(std::vector<XMVECTOR>* hull, std::vector<XMINT3
 	}
 }
 
-static WORD getEdgeIndex(const std::vector<XMINT2> edges, XMINT2 edge)
+static int32_t getEdgeIndex(const std::vector<XMINT2> edges, XMINT2 edge)
 {
 	for (size_t i = 0; i < edges.size(); ++i)
 	{
 		XMINT2 currentEdge = edges[i];
 		if (currentEdge.x == edge.x && currentEdge.y == edge.y)
 		{
-			return static_cast<WORD>(i);
+			return static_cast<int32_t>(i);
 		}
 		if (currentEdge.x == edge.y && currentEdge.y == edge.x)
 		{
-			return static_cast<WORD>(i);
+			return static_cast<int32_t>(i);
 		}
 	}
 
@@ -128,7 +129,7 @@ static ColliderConvexHullFace createConvexHullFace(std::vector<XMINT3> triangles
 		XMINT2 edge2 = { triangle.y, triangle.z };
 		XMINT2 edge3 = { triangle.z, triangle.x };
 
-		WORD edge1Index = getEdgeIndex(edges, edge1);
+		int32_t edge1Index = getEdgeIndex(edges, edge1);
 		if (0 <= edge1Index)
 		{
 			edges.erase(edges.begin() + edge1Index);
@@ -138,7 +139,7 @@ static ColliderConvexHullFace createConvexHullFace(std::vector<XMINT3> triangles
 			edges.push_back(edge1);
 		}
 
-		WORD edge2Index = getEdgeIndex(edges, edge2);
+		int32_t edge2Index = getEdgeIndex(edges, edge2);
 		if (0 <= edge2Index)
 		{
 			edges.erase(edges.begin() + edge2Index);
@@ -148,7 +149,7 @@ static ColliderConvexHullFace createConvexHullFace(std::vector<XMINT3> triangles
 			edges.push_back(edge2);
 		}
 
-		WORD edge3Index = getEdgeIndex(edges, edge3);
+		int32_t edge3Index = getEdgeIndex(edges, edge3);
 		if (0 <= edge3Index)
 		{
 			edges.erase(edges.begin() + edge3Index);
@@ -202,7 +203,7 @@ static ColliderConvexHullFace createConvexHullFace(std::vector<XMINT3> triangles
 	return face;
 }
 
-Collider CreateColliderConvexHull(const std::vector<Vertex> vertices, const std::vector<WORD> indices)
+Collider CreateColliderConvexHull(const std::vector<Vertex>& vertices, const std::vector<WORD>& indices)
 {
 	std::unordered_map<XMVECTOR, WORD> vertexToIndexMap;
 
@@ -297,7 +298,11 @@ Collider CreateColliderConvexHull(const std::vector<Vertex> vertices, const std:
 	// Collect all 'de facto' faces of the convex hull
 	std::vector<ColliderConvexHullFace>* faces = new std::vector<ColliderConvexHullFace>;
 	std::vector<bool> abIsTriangleFaceAlreadyProcessed;
-	abIsTriangleFaceAlreadyProcessed.reserve(hullTriangleFaces.size());
+	//abIsTriangleFaceAlreadyProcessed.reserve(hullTriangleFaces.size());
+	for (size_t i = 0; i < hullTriangleFaces.size(); ++i)
+	{
+		abIsTriangleFaceAlreadyProcessed.push_back(false);
+	}
 
 	for (size_t i = 0; i < hullTriangleFaces.size(); ++i)
 	{
@@ -391,7 +396,8 @@ static void updateCollider(Collider* collider, XMVECTOR translation, const XMVEC
 	switch (collider->type)
 	{
 	case ColliderType::CONVEX_HULL:
-		XMMATRIX modelMatrixNoScale = XMMatrixRotationQuaternion(rotationQ) * XMMatrixTranslationFromVector(translation);
+		// TODO: check disrespected translation
+		XMMATRIX modelMatrixNoScale = XMMatrixTranslationFromVector(translation) * XMMatrixRotationQuaternion(rotationQ);
 		for (size_t i = 0; i < collider->convexHull.transformedVertices->size(); ++i)
 		{
 			XMVECTOR vertex = collider->convexHull.vertices->at(i);
@@ -569,17 +575,19 @@ static void getColliderContacts(Collider* collider1, Collider* collider2, std::v
 		return;
 	}
 
-	// TODO: need to GJK-EPA algorithm implementation for convex hull collision
-
-	GJKSimplex simplex;
-
 	// GJK to check collision
+	GJKSimplex simplex;
 	if (true == GJKCollides(collider1, collider2, &simplex))
 	{
 		// Collision detected
 
 		// EPA to get collision normal
+		if (false == EPA(collider1, collider2, &simplex, &normal, &penetration))
+		{
+			return;
+		}
 
+		GetClippingContactManifold(collider1, collider2, normal, penetration, contacts);
 	}
 }
 

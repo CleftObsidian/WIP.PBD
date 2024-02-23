@@ -408,14 +408,14 @@ bool GJKCollides(Collider* collider1, Collider* collider2, GJKSimplex* _simplex)
 {
 	GJKSimplex simplex;
 
-	simplex.a = supportPointOfMinkowskiDifference(collider1, collider2, XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f));
+	simplex.a = SupportPointOfMinkowskiDifference(collider1, collider2, XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f));
 	simplex.num = 1;
 
 	XMVECTOR direction = -simplex.a;
 
 	for (size_t i = 0; i < 100; ++i)
 	{
-		XMVECTOR nextPoint = supportPointOfMinkowskiDifference(collider1, collider2, direction);
+		XMVECTOR nextPoint = SupportPointOfMinkowskiDifference(collider1, collider2, direction);
 
 		if (XMVectorGetX(XMVector3Dot(nextPoint, direction)) < 0.0f)
 		{

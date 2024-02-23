@@ -11,8 +11,8 @@ namespace DX12Library
 	ComPtr<ID3D12Resource> RigidBodySphere::m_indexBuffer;
 	D3D12_INDEX_BUFFER_VIEW RigidBodySphere::m_indexBufferView;
 	std::unique_ptr<Assimp::Importer> RigidBodySphere::sm_pImporter = std::make_unique<Assimp::Importer>();
-	std::vector<Vertex> RigidBodySphere::m_aVertices;
-	std::vector<WORD> RigidBodySphere::m_aIndices;
+	std::vector<Vertex> RigidBodySphere::sm_aVertices;
+	std::vector<WORD> RigidBodySphere::sm_aIndices;
 	const aiScene* RigidBodySphere::m_pScene = nullptr;
 	std::vector<BasicMeshEntry> RigidBodySphere::m_aMeshes;
 
@@ -52,8 +52,8 @@ namespace DX12Library
 					uNumIndices += m_aMeshes[i].uNumIndices;
 				}
 
-				m_aVertices.reserve(uNumVertices);
-				m_aIndices.reserve(uNumIndices);
+				sm_aVertices.reserve(uNumVertices);
+				sm_aIndices.reserve(uNumIndices);
 
 				for (UINT i = 0u; i < m_aMeshes.size(); ++i)
 				{
@@ -75,7 +75,7 @@ namespace DX12Library
 							.color = XMFLOAT3(0.000000000f, 0.501960814f, 0.000000000f)	// green
 						};
 
-						m_aVertices.push_back(vertex);
+						sm_aVertices.push_back(vertex);
 					}
 
 					// Populate the index buffer
@@ -91,9 +91,9 @@ namespace DX12Library
 							static_cast<WORD>(face.mIndices[2]),
 						};
 
-						m_aIndices.push_back(aIndices[0]);
-						m_aIndices.push_back(aIndices[1]);
-						m_aIndices.push_back(aIndices[2]);
+						sm_aIndices.push_back(aIndices[0]);
+						sm_aIndices.push_back(aIndices[1]);
+						sm_aIndices.push_back(aIndices[2]);
 					}
 				}
 			}
@@ -112,7 +112,7 @@ namespace DX12Library
 		}
 
 		{
-			const UINT vertexBufferSize = sizeof(Vertex) * static_cast<UINT>(m_aVertices.size());
+			const UINT vertexBufferSize = sizeof(Vertex) * static_cast<UINT>(sm_aVertices.size());
 
 			CD3DX12_HEAP_PROPERTIES heapProperties(D3D12_HEAP_TYPE_UPLOAD);
 			CD3DX12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize);
@@ -127,7 +127,7 @@ namespace DX12Library
 			void* pVertexDataBegin;
 			CD3DX12_RANGE readRange(0, 0);
 			ThrowIfFailed(m_vertexBuffer->Map(0, &readRange, &pVertexDataBegin));
-			memcpy(pVertexDataBegin, &m_aVertices[0], vertexBufferSize);
+			memcpy(pVertexDataBegin, &sm_aVertices[0], vertexBufferSize);
 			m_vertexBuffer->Unmap(0, nullptr);
 			m_vertexBuffer->SetName(L"RigidBodySphere Vertex Buffer");
 
@@ -137,7 +137,7 @@ namespace DX12Library
 		}
 
 		{
-			const UINT indexBufferSize = sizeof(WORD) * static_cast<UINT>(m_aIndices.size());
+			const UINT indexBufferSize = sizeof(WORD) * static_cast<UINT>(sm_aIndices.size());
 
 			CD3DX12_HEAP_PROPERTIES heapProperties(D3D12_HEAP_TYPE_UPLOAD);
 			CD3DX12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(indexBufferSize);
@@ -152,7 +152,7 @@ namespace DX12Library
 			void* pIndexDataBegin;
 			CD3DX12_RANGE readRange(0, 0);
 			ThrowIfFailed(m_indexBuffer->Map(0, &readRange, &pIndexDataBegin));
-			memcpy(pIndexDataBegin, &m_aIndices[0], indexBufferSize);
+			memcpy(pIndexDataBegin, &sm_aIndices[0], indexBufferSize);
 			m_indexBuffer->Unmap(0, nullptr);
 			m_indexBuffer->SetName(L"RigidBodySphere Index Buffer");
 
@@ -177,23 +177,28 @@ namespace DX12Library
 		return m_indexBufferView;
 	}
 
-	Vertex* RigidBodySphere::GetVertices(void)
+	const Vertex* RigidBodySphere::GetVertices(void)
 	{
-		return m_aVertices.data();
+		return sm_aVertices.data();
 	}
 
-	const WORD* RigidBodySphere::GetIndices(void) const
+	const WORD* RigidBodySphere::GetIndices(void)
 	{
-		return m_aIndices.data();
+		return sm_aIndices.data();
 	}
 
-	UINT RigidBodySphere::GetNumVertices(void) const
+	UINT RigidBodySphere::GetNumVertices(void)
 	{
-		return static_cast<UINT>(m_aVertices.size());
+		return static_cast<UINT>(sm_aVertices.size());
 	}
 
-	UINT RigidBodySphere::GetNumIndices(void) const
+	UINT RigidBodySphere::GetNumIndices(void)
 	{
-		return static_cast<UINT>(m_aIndices.size());
+		return static_cast<UINT>(sm_aIndices.size());
+	}
+
+	UINT RigidBodySphere::GetNumIndicesForRendering(void) const
+	{
+		return static_cast<UINT>(sm_aIndices.size());
 	}
 }

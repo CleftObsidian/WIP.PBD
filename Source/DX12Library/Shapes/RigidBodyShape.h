@@ -28,10 +28,7 @@ namespace DX12Library
 		virtual D3D12_VERTEX_BUFFER_VIEW& GetVertexBufferView(void) = 0;
 		virtual D3D12_INDEX_BUFFER_VIEW& GetIndexBufferView(void) = 0;
 
-		virtual Vertex* GetVertices(void) = 0;
-		virtual const WORD* GetIndices(void) const = 0;
-		virtual UINT GetNumVertices(void) const = 0;
-		virtual UINT GetNumIndices(void) const = 0;
+		virtual UINT GetNumIndicesForRendering(void) const = 0;
 
 		const XMMATRIX GetWorldMatrix(void) const;
 		void AddForce(_In_ XMVECTOR position, _In_ XMVECTOR force, _In_ bool bIsLocalCoords);

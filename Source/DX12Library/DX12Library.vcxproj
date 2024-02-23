@@ -121,6 +121,7 @@ xcopy /y /d "$(SolutionDir)..\External\Assimp\Binary\x64\Release\assimp-vc142-mt
     <ClCompile Include="Physics\Support.cpp" />
     <ClCompile Include="Shapes\Cube.cpp" />
     <ClCompile Include="Shapes\Plane.cpp" />
+    <ClCompile Include="Shapes\RigidBodyCube.cpp" />
     <ClCompile Include="Shapes\RigidBodyShape.cpp" />
     <ClCompile Include="Shapes\RigidBodySphere.cpp" />
     <ClCompile Include="Shapes\Shape.cpp" />
@@ -152,6 +153,7 @@ xcopy /y /d "$(SolutionDir)..\External\Assimp\Binary\x64\Release\assimp-vc142-mt
     <ClInclude Include="Shapes\Plane.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="Shapes\RigidBodyCube.h" />
     <ClInclude Include="Shapes\RigidBodyShape.h" />
     <ClInclude Include="Shapes\RigidBodySphere.h" />
     <ClInclude Include="Shapes\Shape.h" />

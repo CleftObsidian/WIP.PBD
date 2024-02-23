@@ -49,7 +49,7 @@ struct Collider
 	};
 };
 
-Collider CreateColliderConvexHull(const std::vector<Vertex> vertices, const std::vector<WORD> indices);
+Collider CreateColliderConvexHull(const std::vector<Vertex>& vertices, const std::vector<WORD>& indices);
 Collider CreateColliderSphere(const float radius);
 
 void UpdateColliders(std::vector<Collider>& colliders, XMVECTOR translation, const XMVECTOR rotationQ);

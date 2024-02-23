@@ -521,7 +521,7 @@ void RigidBodyGame::Render(void)
 
 		m_constantBuffer.World = XMMatrixTranspose(shape->second->GetWorldMatrix());
 		m_commandList->SetGraphicsRoot32BitConstants(0, sizeof(ConstantBuffer) / 4, &m_constantBuffer, 0);
-		m_commandList->DrawIndexedInstanced(shape->second->GetNumIndices(), 1, 0, 0, 0);
+		m_commandList->DrawIndexedInstanced(shape->second->GetNumIndicesForRendering(), 1, 0, 0, 0);
 	}
 
 	// Indicate that the back buffer will now be used to present.
